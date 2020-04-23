@@ -2,7 +2,8 @@ package oauth_test
 
 import (
 	"fmt"
-	"github.com/apprentice3d/forge-api-go-client/oauth"
+
+	"github.com/outer-labs/forge-api-go-client/oauth"
 )
 
 //TODO: enable it after having set up a pipeline for auto-creating a 3-legged oauth token

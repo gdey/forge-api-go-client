@@ -2,7 +2,6 @@ package recap_test
 
 import (
 	"fmt"
-	"github.com/apprentice3d/forge-api-go-client/recap"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/outer-labs/forge-api-go-client/recap"
 )
 
 func TestReCapAPIWorkflowUsingRemoteLinks(t *testing.T) {
@@ -88,7 +89,6 @@ func TestReCapAPIWorkflowUsingRemoteLinks(t *testing.T) {
 		}
 	})
 
-
 	t.Run("Check the result file size for normal size", func(t *testing.T) {
 		response, err := recapAPI.GetSceneResults(scene.ID, testingFormat)
 		if err != nil {
@@ -126,7 +126,6 @@ func TestReCapAPIWorkflowUsingRemoteLinks(t *testing.T) {
 		return
 
 	})
-
 
 	t.Run("Delete the scene", func(t *testing.T) {
 		_, err := recapAPI.DeleteScene(scene.ID)
