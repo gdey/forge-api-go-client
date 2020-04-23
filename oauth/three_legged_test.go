@@ -1,9 +1,10 @@
 package oauth_test
 
 import (
-	"github.com/apprentice3d/forge-api-go-client/oauth"
 	"os"
 	"testing"
+
+	"github.com/outer-labs/forge-api-go-client/oauth"
 )
 
 func TestThreeLeggedAuth_Authorize(t *testing.T) {

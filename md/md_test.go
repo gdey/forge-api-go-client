@@ -1,14 +1,15 @@
 package md_test
 
 import (
-	"testing"
-	"os"
-	"github.com/apprentice3d/forge-api-go-client/dm"
-	"github.com/apprentice3d/forge-api-go-client/md"
-	"io/ioutil"
-	"encoding/json"
-	"encoding/base64"
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"io/ioutil"
+	"os"
+	"testing"
+
+	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/outer-labs/forge-api-go-client/md"
 )
 
 func TestAPI_TranslateToSVF(t *testing.T) {
