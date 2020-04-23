@@ -1,20 +1,20 @@
 package md_test
 
 import (
-	"testing"
-	"os"
-	"github.com/apprentice3d/forge-api-go-client/dm"
-	"github.com/apprentice3d/forge-api-go-client/md"
-	"io/ioutil"
-	"encoding/json"
-	"encoding/base64"
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"os"
+	"testing"
+
+	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/outer-labs/forge-api-go-client/env"
+	"github.com/outer-labs/forge-api-go-client/md"
 )
 
 func TestAPI_TranslateToSVF(t *testing.T) {
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 	mdAPI := md.NewAPIWithCredentials(clientID, clientSecret)
 
@@ -45,12 +45,8 @@ func TestAPI_TranslateToSVF(t *testing.T) {
 			t.Fatal("Cannot open testfile for reading")
 		}
 		defer file.Close()
-		data, err := ioutil.ReadAll(file)
-		if err != nil {
-			t.Fatal("Cannot read the testfile")
-		}
 
-		testObject, err = bucketAPI.UploadObject(tempBucketName, "temp_file.rvt", data)
+		testObject, err = bucketAPI.UploadObject(tempBucketName, "temp_file.rvt", file)
 
 		if err != nil {
 			t.Fatal("Could not upload the test object, got: ", err.Error())

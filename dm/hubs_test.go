@@ -3,14 +3,15 @@ package dm_test
 import (
 	"os"
 	"testing"
+
 	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/outer-labs/forge-api-go-client/env"
 )
 
 func TestHubAPI_GetHubDetails(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	hubAPI := dm.NewHubAPIWithCredentials(clientID, clientSecret)
 
@@ -33,5 +34,3 @@ func TestHubAPI_GetHubDetails(t *testing.T) {
 		}
 	})
 }
-
-

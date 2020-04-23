@@ -4,18 +4,19 @@ import (
 	"io"
 	"os"
 	"testing"
+
 	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/outer-labs/forge-api-go-client/env"
 )
 
 func TestBucketAPI_ListObjects(t *testing.T) {
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
 	// testBucketName := "just_a_test_bucket"
-	testBucketName := os.Getenv("FORGE_OSS_TEST_BUCKET_KEY")
+	testBucketName := env.GetTest(t, "FORGE_OSS_TEST_BUCKET_KEY")
 
 	t.Run("List bucket content", func(t *testing.T) {
 		content, err := bucketAPI.ListObjects(testBucketName, "", "", "")
@@ -37,8 +38,7 @@ func TestBucketAPI_ListObjects(t *testing.T) {
 func TestBucketAPI_UploadObject(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
@@ -95,8 +95,7 @@ func TestBucketAPI_UploadObject(t *testing.T) {
 
 func TestBucketAPI_DownloadObject(t *testing.T) {
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
