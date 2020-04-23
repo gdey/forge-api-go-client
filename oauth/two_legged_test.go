@@ -6,17 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gdey/forge-api-go-client/env"
 	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 func TestAuthenticate(t *testing.T) {
 
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
-
-	if len(clientID) == 0 || len(clientSecret) == 0 {
-		t.Fatalf("Could not get from env the Forge secrets")
-	}
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	t.Run("Valid Forge Secrets", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
@@ -78,9 +74,8 @@ func TestAuthenticate(t *testing.T) {
 
 func ExampleTwoLeggedAuth_Authenticate() {
 
-	// aquire Forge secrets from environment
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	// acquire Forge secrets from environment
+	clientID, clientSecret := os.Getenv("FORGE_CLIENT_ID"), os.Getenv("FORGE_CLIENT_SECRET")
 
 	if len(clientID) == 0 || len(clientSecret) == 0 {
 		log.Fatalf("Could not get from env the Forge secrets")

@@ -1,21 +1,16 @@
 package oauth_test
 
 import (
-	"os"
 	"testing"
 
+	"github.com/gdey/forge-api-go-client/env"
 	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 func TestThreeLeggedAuth_Authorize(t *testing.T) {
 
 	//prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
-
-	if len(clientID) == 0 || len(clientSecret) == 0 {
-		t.Fatal("Could not get Forge env vars")
-	}
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	client := oauth.NewThreeLeggedClient(clientID,
 		clientSecret,

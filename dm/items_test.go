@@ -3,13 +3,14 @@ package dm
 import (
 	"os"
 	"testing"
+
+	"github.com/gdey/forge-api-go-client/env"
 )
 
 func TestFolderAPI_GetItemDetails(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	folderAPI := NewFolderAPIWithCredentials(clientID, clientSecret)
 
@@ -28,8 +29,7 @@ func TestFolderAPI_GetItemDetails(t *testing.T) {
 func TestFolderAPI_GetItemTip(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	folderAPI := NewFolderAPIWithCredentials(clientID, clientSecret)
 
@@ -48,8 +48,7 @@ func TestFolderAPI_GetItemTip(t *testing.T) {
 func TestFolderAPI_GetItemVersions(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	folderAPI := NewFolderAPIWithCredentials(clientID, clientSecret)
 

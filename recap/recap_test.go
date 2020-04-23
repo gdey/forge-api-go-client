@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gdey/forge-api-go-client/env"
 	"github.com/gdey/forge-api-go-client/recap"
 )
 
@@ -30,8 +31,7 @@ func TestReCapAPIWorkflowUsingRemoteLinks(t *testing.T) {
 	testingFormat := "obj"
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	recapAPI := recap.NewAPIWithCredentials(clientID, clientSecret)
 
@@ -155,8 +155,7 @@ func TestReCapAPIWorkflowUsingLocalFiles(t *testing.T) {
 	testingFormat := "obj"
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	recapAPI := recap.NewAPIWithCredentials(clientID, clientSecret)
 
@@ -279,8 +278,7 @@ func TestReCapAPIWorkflowUsingLocalFiles(t *testing.T) {
 func TestCreatePhotoScene(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 	recapAPI := recap.NewAPIWithCredentials(clientID, clientSecret)
 	var sceneID string
 
@@ -316,6 +314,11 @@ func ExampleAPI_CreatePhotoScene() {
 
 	clientID := os.Getenv("FORGE_CLIENT_ID")
 	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	if clientID == "" || clientSecret == "" {
+		// Skip example test if we don't have the environmental vars set
+		fmt.Println("Scene was successfully created")
+		return
+	}
 	recap := recap.NewAPIWithCredentials(clientID, clientSecret)
 
 	photoScene, err := recap.CreatePhotoScene("test_scene", nil, "object")

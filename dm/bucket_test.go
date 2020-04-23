@@ -2,17 +2,18 @@ package dm_test
 
 import (
 	"fmt"
-	"github.com/gdey/forge-api-go-client/dm"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/gdey/forge-api-go-client/dm"
+	"github.com/gdey/forge-api-go-client/env"
 )
 
 func TestBucketAPI_CreateBucket(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
@@ -52,8 +53,7 @@ func TestBucketAPI_CreateBucket(t *testing.T) {
 func TestBucketAPI_GetBucketDetails(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
@@ -95,8 +95,7 @@ func TestBucketAPI_GetBucketDetails(t *testing.T) {
 func TestBucketAPI_ListBuckets(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
@@ -111,9 +110,9 @@ func TestBucketAPI_ListBuckets(t *testing.T) {
 	t.Run("Create a bucket and find it among listed", func(t *testing.T) {
 
 		testBucketKey := "just_for_testing"
-		
+
 		_, err := bucketAPI.CreateBucket(testBucketKey, "transient")
-		
+
 		if err != nil {
 			t.Errorf("Failed to create a bucket: %s\n", err.Error())
 		}
@@ -148,8 +147,7 @@ func TestBucketAPI_ListBuckets(t *testing.T) {
 func ExampleBucketAPI_CreateBucket() {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := os.Getenv("FORGE_CLIENT_ID"), os.Getenv("FORGE_CLIENT_SECRET")
 
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 

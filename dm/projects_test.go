@@ -3,14 +3,15 @@ package dm_test
 import (
 	"os"
 	"testing"
+
 	"github.com/gdey/forge-api-go-client/dm"
+	"github.com/gdey/forge-api-go-client/env"
 )
 
 func TestProjectAPI_GetProjects(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	hubAPI := dm.NewHubAPIWithCredentials(clientID, clientSecret)
 
@@ -18,7 +19,7 @@ func TestProjectAPI_GetProjects(t *testing.T) {
 
 	t.Run("List all projects under a given hub", func(t *testing.T) {
 		_, err := hubAPI.ListProjects(testHubKey)
-		
+
 		if err != nil {
 			t.Fatalf("Failed to get project details: %s\n", err.Error())
 		}
@@ -33,12 +34,10 @@ func TestProjectAPI_GetProjects(t *testing.T) {
 	})
 }
 
-
 func TestProjectAPI_GetProjectDetails(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	hubAPI := dm.NewHubAPIWithCredentials(clientID, clientSecret)
 
@@ -47,14 +46,14 @@ func TestProjectAPI_GetProjectDetails(t *testing.T) {
 
 	t.Run("List all projects under a given hub", func(t *testing.T) {
 		_, err := hubAPI.GetProjectDetails(testHubKey, testProjectKey)
-		
+
 		if err != nil {
 			t.Fatalf("Failed to get project details: %s\n", err.Error())
 		}
 	})
 
 	t.Run("List all projects under non-existent hub (should fail)", func(t *testing.T) {
-		_, err := hubAPI.GetProjectDetails(testHubKey, testProjectKey + "30091981")
+		_, err := hubAPI.GetProjectDetails(testHubKey, testProjectKey+"30091981")
 
 		if err == nil {
 			t.Fatalf("Should fail getting getting projects for non-existing hub\n")
@@ -62,12 +61,10 @@ func TestProjectAPI_GetProjectDetails(t *testing.T) {
 	})
 }
 
-
 func TestProjectAPI_GetTopFolders(t *testing.T) {
 
 	// prepare the credentials
-	clientID := os.Getenv("FORGE_CLIENT_ID")
-	clientSecret := os.Getenv("FORGE_CLIENT_SECRET")
+	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	hubAPI := dm.NewHubAPIWithCredentials(clientID, clientSecret)
 
@@ -76,19 +73,17 @@ func TestProjectAPI_GetTopFolders(t *testing.T) {
 
 	t.Run("List all projects under a given hub", func(t *testing.T) {
 		_, err := hubAPI.GetTopFolders(testHubKey, testProjectKey)
-		
+
 		if err != nil {
 			t.Fatalf("Failed to get project details: %s\n", err.Error())
 		}
 	})
 
 	t.Run("List all projects under non-existent hub (should fail)", func(t *testing.T) {
-		_, err := hubAPI.GetTopFolders(testHubKey, testProjectKey + "30091981")
+		_, err := hubAPI.GetTopFolders(testHubKey, testProjectKey+"30091981")
 
 		if err == nil {
 			t.Fatalf("Should fail getting getting projects for non-existing hub\n")
 		}
 	})
 }
-
-
