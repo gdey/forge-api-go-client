@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/outer-labs/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 var (

@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/outer-labs/forge-api-go-client.svg?branch=master)](https://travis-ci.org/outer-labs/forge-api-go-client)
-[![GoDoc](https://godoc.org/github.com/outer-labs/forge-api-go-client?status.svg)](https://godoc.org/github.com/outer-labs/forge-api-go-client)
-[![Go Report Card](https://goreportcard.com/badge/github.com/outer-labs/forge-api-go-client)](https://goreportcard.com/report/github.com/outer-labs/forge-api-go-client)
+[![GoDoc](https://godoc.org/github.com/gdey/forge-api-go-client?status.svg)](https://godoc.org/github.com/gdey/forge-api-go-client)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gdey/forge-api-go-client)](https://goreportcard.com/report/github.com/gdey/forge-api-go-client)
 
 # forge-api-go-client
 

@@ -1,6 +1,6 @@
 package dm
 
-import "github.com/outer-labs/forge-api-go-client/oauth"
+import "github.com/gdey/forge-api-go-client/oauth"
 
 type HubAPI3L struct {
 	Auth       oauth.ThreeLeggedAuth

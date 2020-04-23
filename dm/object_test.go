@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 	"testing"
-	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/gdey/forge-api-go-client/dm"
 )
 
 func TestBucketAPI_ListObjects(t *testing.T) {

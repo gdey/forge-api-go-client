@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/outer-labs/forge-api-go-client/recap"
+	"github.com/gdey/forge-api-go-client/recap"
 )
 
 func TestReCapAPIWorkflowUsingRemoteLinks(t *testing.T) {

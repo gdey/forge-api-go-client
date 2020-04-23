@@ -1,7 +1,7 @@
 package dm
 
 import (
-	"github.com/outer-labs/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 type FolderAPI3L struct {

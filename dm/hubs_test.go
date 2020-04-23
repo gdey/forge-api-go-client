@@ -3,7 +3,7 @@ package dm_test
 import (
 	"os"
 	"testing"
-	"github.com/outer-labs/forge-api-go-client/dm"
+	"github.com/gdey/forge-api-go-client/dm"
 )
 
 func TestHubAPI_GetHubDetails(t *testing.T) {

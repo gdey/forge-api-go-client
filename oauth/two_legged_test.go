@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/outer-labs/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 func TestAuthenticate(t *testing.T) {
