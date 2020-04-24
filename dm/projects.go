@@ -3,41 +3,39 @@ package dm
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/outer-labs/forge-api-go-client/oauth"
 )
 
-// ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
+// ListProjects returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api HubAPI) ListProjects(hubKey string) (result ForgeResponseArray, err error) {
 
 	// TO DO: take in optional arguments for query params: id, ext, page, limit
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/hubs-hub_id-projects-GET/
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
 
-	path := api.Host + api.HubAPIPath
-
-	return listProjects(path, hubKey, "", "", "", "", bearer.AccessToken)
+	return listProjects(api.Path(), hubKey, "", "", "", "", bearer.AccessToken)
 }
 
 func (api HubAPI) GetProjectDetails(hubKey, projectKey string) (result ForgeResponseObject, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-	path := api.Host + api.HubAPIPath
 
-	return getProjectDetails(path, hubKey, projectKey, bearer.AccessToken)
+	return getProjectDetails(api.Path(), hubKey, projectKey, bearer.AccessToken)
 }
 
 func (api HubAPI) GetTopFolders(hubKey, projectKey string) (result ForgeResponseArray, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-	path := api.Host + api.HubAPIPath
 
-	return getTopFolders(path, hubKey, projectKey, bearer.AccessToken)
+	return getTopFolders(api.Path(), hubKey, projectKey, bearer.AccessToken)
 }
 
 /*

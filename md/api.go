@@ -30,19 +30,9 @@ var (
 	}
 )
 
-// API struct holds all paths necessary to access Model Derivative API
-type ModelDerivativeAPI struct {
-	oauth.TwoLeggedAuth
-	ModelDerivativePath string
-}
-
-// NewAPIWithCredentials returns a Model Derivative API client with default configurations
-func NewAPIWithCredentials(ClientID string, ClientSecret string) ModelDerivativeAPI {
-	return ModelDerivativeAPI{
-		oauth.NewTwoLeggedClient(ClientID, ClientSecret),
-		"/modelderivative/v2/designdata",
-	}
-}
+const (
+	DefaultModelDerivativePath = "/modelderivative/v2/designdata"
+)
 
 //TranslationParams is used when specifying the translation jobs
 type TranslationParams struct {
@@ -156,103 +146,97 @@ type TreeNodeSpec struct {
 	Objects  []TreeNodeSpec `json:"objects",omitempty`
 }
 
+// API struct holds all paths necessary to access Model Derivative API
+type ModelDerivativeAPI struct {
+	oauth.ForgeAuthenticator
+	APIPath string
+}
+
+// NewAPIWithCredentials returns a Model Derivative API client with default configurations
+func NewAPIWithCredentials(ClientID string, ClientSecret string) ModelDerivativeAPI {
+	return ModelDerivativeAPI{
+		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+	}
+}
+
+func (api ModelDerivativeAPI) Path() string {
+	if api.APIPath != "" {
+		return api.ForgeAuthenticator.HostPath(api.APIPath)
+	}
+	return api.ForgeAuthenticator.HostPath(DefaultModelDerivativePath)
+}
+
 // TranslateWithParams triggers translation job with settings specified in given TranslationParams
-func (a ModelDerivativeAPI) TranslateWithParams(params TranslationParams) (result TranslationResult, err error) {
-	bearer, err := a.Authenticate("data:write data:read")
+func (api ModelDerivativeAPI) TranslateWithParams(params TranslationParams) (result TranslationResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead | oauth.ScopeDataWrite)
 	if err != nil {
 		return
 	}
-	path := a.Host + a.ModelDerivativePath
-	result, err = translate(path, params, bearer.AccessToken)
+
+	result, err = translate(api.Path(), params, bearer.AccessToken)
 
 	return
 }
 
 // TranslateToSVF is a helper function that will use the TranslationSVFPreset for translating into svf a given ObjectID.
 // It will also take care of converting objectID into Base64 (URL Safe) encoded URN.
-func (a ModelDerivativeAPI) TranslateToSVF(objectID string) (result TranslationResult, err error) {
-	bearer, err := a.Authenticate("data:write data:read")
+func (api ModelDerivativeAPI) TranslateToSVF(objectID string) (result TranslationResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead | oauth.ScopeDataWrite)
 	if err != nil {
 		return
 	}
-	path := a.Host + a.ModelDerivativePath
 	params := TranslationSVFPreset
 	params.Input.URN = base64.RawURLEncoding.EncodeToString([]byte(objectID))
 
-	result, err = translate(path, params, bearer.AccessToken)
-
-	return
+	return translate(api.Path(), params, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetManifest(urn string) (result ManifestResult, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetManifest(urn string) (result ManifestResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	result, err = getManifest(path, urn, bearer.AccessToken)
-
-	return
+	return getManifest(api.Path(), urn, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetMetadata(urn string) (result MetadataResult, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetMetadata(urn string) (result MetadataResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	result, err = getMetadata(path, urn, bearer.AccessToken)
-
-	return
+	return getMetadata(api.Path(), urn, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetObjectTree(urn string, viewId string) (status int, result TreeResult, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetObjectTree(urn string, viewId string) (status int, result TreeResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return status, result, err
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	status, result, err = getObjectTree(path, urn, viewId, bearer.AccessToken)
-
-	return
+	return getObjectTree(api.Path(), urn, viewId, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetPropertiesStream(urn string, viewId string) (status int,
-	result io.ReadCloser, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetPropertiesStream(urn string, viewId string) (status int, result io.ReadCloser, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return status, result, err
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	status, result, err = getPropertiesStream(path, urn, viewId, bearer.AccessToken)
-	return
+	return getPropertiesStream(api.Path(), urn, viewId, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetPropertiesObject(urn string, viewId string) (result PropertiesResult, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetPropertiesObject(urn string, viewId string) (result PropertiesResult, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return result, err
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	result, err = getPropertiesObject(path, urn, viewId, bearer.AccessToken)
-	return
+	return getPropertiesObject(api.Path(), urn, viewId, bearer.AccessToken)
 }
 
-func (a ModelDerivativeAPI) GetThumbnail(urn string) (reader io.ReadCloser, err error) {
-	bearer, err := a.Authenticate("data:read")
+func (api ModelDerivativeAPI) GetThumbnail(urn string) (reader io.ReadCloser, err error) {
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return nil, err
 	}
-
-	path := a.Host + a.ModelDerivativePath
-	reader, err = getThumbnail(path, urn, bearer.AccessToken)
-
-	return
+	return getThumbnail(api.Path(), urn, bearer.AccessToken)
 }
 
 /*

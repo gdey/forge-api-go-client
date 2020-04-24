@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"errors"
 	"sync"
 	"time"
 )
@@ -20,8 +21,9 @@ func NewRefreshableToken(bearer *Bearer, expiryTime time.Time) *RefreshableToken
 }
 
 func (t *RefreshableToken) RefreshTokenIfRequired(auth ThreeLeggedAuth) error {
-	t.writeMutex.Lock()
-	defer t.writeMutex.Unlock()
+	if t == nil {
+		return errors.New("InValid Token")
+	}
 
 	// Check if token has expired
 	now := time.Now()
@@ -30,7 +32,7 @@ func (t *RefreshableToken) RefreshTokenIfRequired(auth ThreeLeggedAuth) error {
 		return nil
 	}
 
-	refreshedBearer, err := auth.RefreshToken(t.bearer.RefreshToken, "data:read")
+	refreshedBearer, err := auth.RefreshToken(t.bearer.RefreshToken)
 	if err != nil {
 		return err
 	}
@@ -38,12 +40,15 @@ func (t *RefreshableToken) RefreshTokenIfRequired(auth ThreeLeggedAuth) error {
 	// Refresh "now" and add new token expiration time to API struct along with new credentials
 	now = time.Now()
 	newExpiryTime := now.Add(time.Second * time.Duration(refreshedBearer.ExpiresIn))
+
+	t.writeMutex.Lock()
 	t.TokenExpireTime = newExpiryTime
 
 	t.bearer.AccessToken = refreshedBearer.AccessToken
 	t.bearer.ExpiresIn = refreshedBearer.ExpiresIn
 	t.bearer.RefreshToken = refreshedBearer.RefreshToken
 	t.bearer.TokenType = refreshedBearer.TokenType
+	t.writeMutex.Unlock()
 
 	return nil
 }

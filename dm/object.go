@@ -3,10 +3,12 @@ package dm
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/outer-labs/forge-api-go-client/oauth"
 )
 
 // ObjectDetails reflects the data presented when uploading an object to a bucket or requesting details on object.
@@ -31,39 +33,34 @@ type BucketContent struct {
 // UploadObject adds to specified bucket the given data (can originate from a multipart-form or direct file read).
 // Return details on uploaded object, including the object URN. Check ObjectDetails struct.
 func (api BucketAPI) UploadObject(bucketKey string, objectName string, reader io.Reader) (result ObjectDetails, err error) {
-	bearer, err := api.Authenticate("data:write")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
 	if err != nil {
-		return
+		return result, err
 	}
-	path := api.Host + api.BucketAPIPath
 
-	return uploadObject(path, bucketKey, objectName, reader, bearer.AccessToken)
+	return uploadObject(api.Path(), bucketKey, objectName, reader, bearer.AccessToken)
 }
 
 // DownloadObject returns the reader stream of the response body
 // Don't forget to close it!
 func (api BucketAPI) DownloadObject(bucketKey string, objectName string) (reader io.ReadCloser, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return reader, err
 	}
-	path := api.Host + api.BucketAPIPath
 
-	return downloadObject(path, bucketKey, objectName, bearer.AccessToken)
+	return downloadObject(api.Path(), bucketKey, objectName, bearer.AccessToken)
 }
 
 // ListObjects returns the bucket contains along with details on each item.
 func (api BucketAPI) ListObjects(bucketKey, limit, beginsWith, startAt string) (result BucketContent, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
-		return
+		return result, err
 	}
-	path := api.Host + api.BucketAPIPath
 
-	return listObjects(path, bucketKey, limit, beginsWith, startAt, bearer.AccessToken)
+	return listObjects(api.Path(), bucketKey, limit, beginsWith, startAt, bearer.AccessToken)
 }
-
-
 
 /*
  *	SUPPORT FUNCTIONS
@@ -73,7 +70,7 @@ func listObjects(path, bucketKey, limit, beginsWith, startAt, token string) (res
 	task := http.Client{}
 
 	req, err := http.NewRequest("GET",
-		path + "/" + bucketKey + "/objects",
+		path+"/"+bucketKey+"/objects",
 		nil,
 	)
 
@@ -119,7 +116,7 @@ func uploadObject(path, bucketKey, objectName string, dataContent io.Reader, tok
 
 	//dataContent := bytes.NewReader(data)
 	req, err := http.NewRequest("PUT",
-		path+"/"+ bucketKey + "/objects/" + objectName,
+		path+"/"+bucketKey+"/objects/"+objectName,
 		dataContent)
 
 	if err != nil {
@@ -151,7 +148,7 @@ func downloadObject(path, bucketKey, objectName string, token string) (result io
 	task := http.Client{}
 
 	req, err := http.NewRequest("GET",
-		path+"/"+ bucketKey + "/objects/" + objectName,
+		path+"/"+bucketKey+"/objects/"+objectName,
 		nil)
 
 	if err != nil {

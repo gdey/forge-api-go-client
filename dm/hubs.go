@@ -8,10 +8,14 @@ import (
 	"github.com/outer-labs/forge-api-go-client/oauth"
 )
 
+const (
+	DefaultHubAPIPAth = "/project/v1/hubs"
+)
+
 // HubAPI holds the necessary data for making calls to Forge Data Management service
 type HubAPI struct {
-	oauth.TwoLeggedAuth
-	HubAPIPath string
+	oauth.ForgeAuthenticator
+	APIPath string
 }
 
 var api HubAPI
@@ -19,29 +23,31 @@ var api HubAPI
 // NewHubAPIWithCredentials returns a Hub API client with default configurations
 func NewHubAPIWithCredentials(ClientID string, ClientSecret string) HubAPI {
 	return HubAPI{
-		oauth.NewTwoLeggedClient(ClientID, ClientSecret),
-		"/project/v1/hubs",
+		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
 	}
+}
+
+func (api HubAPI) Path() string {
+	if api.APIPath != "" {
+		return api.ForgeAuthenticator.HostPath(api.APIPath)
+	}
+	return api.ForgeAuthenticator.HostPath(DefaultHubAPIPAth)
 }
 
 func (api HubAPI) GetHubs() (result ForgeResponseArray, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-	path := api.Host + api.HubAPIPath
-
-	return getHubs(path, bearer.AccessToken)
+	return getHubs(api.Path(), bearer.AccessToken)
 }
 
 func (api HubAPI) GetHubDetails(hubKey string) (result ForgeResponseObject, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-	path := api.Host + api.HubAPIPath
-
-	return getHubDetails(path, hubKey, bearer.AccessToken)
+	return getHubDetails(api.Path(), hubKey, bearer.AccessToken)
 }
 
 /*

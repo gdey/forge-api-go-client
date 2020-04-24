@@ -17,7 +17,7 @@ func TestAuthenticate(t *testing.T) {
 	t.Run("Valid Forge Secrets", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
-		bearer, err := authenticator.Authenticate("data:read")
+		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
 
 		if err != nil {
 			t.Error(err.Error())
@@ -31,7 +31,7 @@ func TestAuthenticate(t *testing.T) {
 	t.Run("Invalid Forge Secrets", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient("", clientSecret)
 
-		bearer, err := authenticator.Authenticate("data:read")
+		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
 
 		if err == nil {
 			t.Errorf("Expected to fail due to wrong credentials, but got %v", bearer)
@@ -45,7 +45,9 @@ func TestAuthenticate(t *testing.T) {
 	t.Run("Invalid scope", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
-		bearer, err := authenticator.Authenticate("data:improvise")
+		// Get a bad scope. if ScopeAccountWrite is not the last scope, then this will fail
+		var badScope oauth.Scopes
+		bearer, err := authenticator.Authenticate(badScope)
 
 		if err == nil {
 			t.Errorf("Expected to fail due to wrong scope, but got %v\n", bearer)
@@ -60,7 +62,7 @@ func TestAuthenticate(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 		authenticator.Host = "http://localhost"
 
-		bearer, err := authenticator.Authenticate("data:read")
+		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
 
 		if err == nil {
 			t.Errorf("Expected to fail due to wrong host, but got %v\n", bearer)
@@ -85,7 +87,7 @@ func ExampleTwoLeggedAuth_Authenticate() {
 	authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
 	// request a token with needed scopes, separated by spaces
-	bearer, err := authenticator.Authenticate("data:read data:write")
+	bearer, err := authenticator.Authenticate(oauth.ScopeDataRead | oauth.ScopeDataWrite)
 
 	if err != nil || len(bearer.AccessToken) == 0 {
 		log.Fatalf("Could not get from env the Forge secrets")

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 )
 
 // TwoLeggedAuth struct holds data necessary for making requests in 2-legged context
@@ -24,51 +23,52 @@ type TwoLeggedAuthenticator interface {
 // NewTwoLeggedClient returns a 2-legged authenticator with default host and authPath
 func NewTwoLeggedClient(clientID, clientSecret string) TwoLeggedAuth {
 	return TwoLeggedAuth{
-		AuthData{
-			clientID,
-			clientSecret,
-			"https://developer.api.autodesk.com",
-			"/authentication/v1",
-			time.Now(),
-		},
+		AuthData: AuthDataForClient(clientID, clientSecret),
 	}
 }
 
-// Authenticate allows getting a token with a given scope
-func (a TwoLeggedAuth) Authenticate(scope string) (bearer Bearer, err error) {
+// GetTokenWithScope will get the a token for the given scope
+func (a TwoLeggedAuth) GetTokenWithScope(scope Scopes) (*Bearer, error) { return a.Authenticate(scope) }
 
+// Authenticate allows getting a token with a given scope
+func (a TwoLeggedAuth) Authenticate(scope Scopes) (bearer *Bearer, err error) {
+
+	if !scope.IsValid() {
+		return nil, errors.New("Invalid scope")
+	}
+	bearer = new(Bearer)
 	task := http.Client{}
 
 	body := url.Values{}
 	body.Add("client_id", a.ClientID)
 	body.Add("client_secret", a.ClientSecret)
 	body.Add("grant_type", "client_credentials")
-	body.Add("scope", scope)
+	body.Add("scope", scope.String())
 
 	req, err := http.NewRequest("POST",
-		a.Host+a.AuthPath+"/authenticate",
+		a.Path("/authenticate"),
 		bytes.NewBufferString(body.Encode()),
 	)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	response, err := task.Do(req)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(response.Body)
 		err = errors.New("[" + strconv.Itoa(response.StatusCode) + "] " + string(content))
-		return
+		return nil, err
 	}
 
 	decoder := json.NewDecoder(response.Body)
-	err = decoder.Decode(&bearer)
+	err = decoder.Decode(bearer)
 
-	return
+	return bearer, nil
 }
