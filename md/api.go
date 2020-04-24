@@ -13,6 +13,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 var (
@@ -156,7 +157,7 @@ type ModelDerivativeAPI struct {
 // NewAPIWithCredentials returns a Model Derivative API client with default configurations
 func NewAPIWithCredentials(ClientID string, ClientSecret string) ModelDerivativeAPI {
 	return ModelDerivativeAPI{
-		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
 	}
 }
 

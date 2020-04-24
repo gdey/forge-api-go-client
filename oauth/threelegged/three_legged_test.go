@@ -1,19 +1,19 @@
-package oauth_test
+package threelegged_test
 
 import (
 	"testing"
 
 	"github.com/gdey/forge-api-go-client/env"
-	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/threelegged"
 )
 
-func TestThreeLeggedAuth_Authorize(t *testing.T) {
+func TestAuth_Authorize(t *testing.T) {
 
 	//prepare the credentials
 	clientID, clientSecret := env.GetClientSecretTest(t)
 
-	client := oauth.NewThreeLeggedClient(clientID,
+	client := threelegged.NewClient(clientID,
 		clientSecret,
 		"http://localhost:3009/callback",
 		scopes.DataRead|scopes.DataWrite,

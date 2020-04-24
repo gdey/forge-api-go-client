@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 const (
@@ -21,7 +22,7 @@ type FolderAPI struct {
 // NewFolderAPIWithCredentials returns a Folder API client with default configurations
 func NewFolderAPIWithCredentials(ClientID string, ClientSecret string) FolderAPI {
 	return FolderAPI{
-		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
 	}
 }
 

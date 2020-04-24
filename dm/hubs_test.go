@@ -1,7 +1,6 @@
 package dm_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/gdey/forge-api-go-client/dm"
@@ -16,7 +15,7 @@ func TestHubAPI_GetHubDetails(t *testing.T) {
 	hubAPI := dm.NewHubAPIWithCredentials(clientID, clientSecret)
 
 	// testHubKey := "my_test_hub_key_for_go"
-	testHubKey := os.Getenv("BIM_360_TEST_ACCOUNT_HUBKEY")
+	testHubKey := env.GetTest(t, "BIM_360_TEST_ACCOUNT_HUBKEY")
 
 	t.Run("Get hub details", func(t *testing.T) {
 		_, err := hubAPI.GetHubDetails(testHubKey)

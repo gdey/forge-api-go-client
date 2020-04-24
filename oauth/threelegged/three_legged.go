@@ -1,4 +1,4 @@
-package oauth
+package threelegged
 
 import (
 	"bytes"
@@ -11,48 +11,48 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
-// ThreeLeggedAuth struct holds data necessary for making requests in 3-legged context
-type ThreeLeggedAuth struct {
-	AuthData
-	RedirectURI string `json:"redirect_uri,omitempty"`
-	Scope       scopes.Scope
-}
-
-type ThreeLeggedAuthToken struct {
-	ThreeLeggedAuth
+type AuthToken struct {
+	Auth
 	Token *RefreshableToken
 }
 
-func (a ThreeLeggedAuthToken) GetTokenWithScope(scope scopes.Scope) (*Bearer, error) {
-	if !a.ThreeLeggedAuth.Scope.Allows(scope) {
-		return nil, fmt.Errorf("scopes require: '%v' have '%v'", a.ThreeLeggedAuth.Scope, scope)
+func (a AuthToken) GetTokenWithScope(scope scopes.Scope) (*oauth.Bearer, error) {
+	if !a.Auth.Scope.Allows(scope) {
+		return nil, fmt.Errorf("scopes require: '%v' have '%v'", scope, a.Auth.Scope)
 	}
 
-	if err := a.Token.RefreshTokenIfRequired(a.ThreeLeggedAuth); err != nil {
+	if err := a.Token.RefreshTokenIfRequired(a.Auth); err != nil {
 		return nil, err
 	}
 	return a.Token.Bearer(), nil
 }
 
-// ThreeLeggedAuthenticator interface defines the method necessary to qualify as 3-legged authenticator
-type ThreeLeggedAuthenticator interface {
-	Authorize(state string) (string, error)
-	GetToken(code string) (Bearer, error)
-	RefreshToken(refreshToken string) (*Bearer, error)
+// Auth struct holds data necessary for making requests in 3-legged context
+type Auth struct {
+	oauth.AuthData
+	RedirectURI string `json:"redirect_uri,omitempty"`
+	Scope       scopes.Scope
 }
 
-// NewThreeLeggedClient returns a 3-legged authenticator with default host and authPath
+// Authenticator interface defines the method necessary to qualify as 3-legged authenticator
+type Authenticator interface {
+	Authorize(state string) (string, error)
+	GetToken(code string) (oauth.Bearer, error)
+	RefreshToken(refreshToken string) (*oauth.Bearer, error)
+}
+
+// NewClient returns a 3-legged authenticator with default host and authPath
 // if scope is 0, then ScopeDataRead is set.
-func NewThreeLeggedClient(clientID, clientSecret, redirectURI string, scope scopes.Scope) ThreeLeggedAuth {
+func NewClient(clientID, clientSecret, redirectURI string, scope scopes.Scope) Auth {
 	if scope == 0 {
-		// TOOD(gdey): would ScopeViewableRead be a better things to ask for?
 		scope = scopes.DataRead
 	}
-	return ThreeLeggedAuth{
-		AuthData:    AuthDataForClient(clientID, clientSecret),
+	return Auth{
+		AuthData:    oauth.AuthDataForClient(clientID, clientSecret),
 		RedirectURI: redirectURI,
 		Scope:       scope,
 	}
@@ -65,7 +65,7 @@ func NewThreeLeggedClient(clientID, clientSecret, redirectURI string, scope scop
 // verbatim in a state query parameter to the callback URL.
 //	Note: You do not call this URL directly in your server code.
 //	See the Get a 3-Legged Token tutorial for more information on how to use this endpoint.
-func (a ThreeLeggedAuth) Authorize(state string) (string, error) {
+func (a Auth) Authorize(state string) (string, error) {
 
 	request, err := http.NewRequest("GET",
 		a.Path("/authorize"),
@@ -88,8 +88,8 @@ func (a ThreeLeggedAuth) Authorize(state string) (string, error) {
 	return request.URL.String(), nil
 }
 
-//GetToken is used to exchange the authorization code for a token and an exchange token
-func (a ThreeLeggedAuth) GetToken(code string) (bearer Bearer, err error) {
+// GetToken is used to exchange the authorization code for a token and an exchange token
+func (a Auth) GetToken(code string) (bearer oauth.Bearer, err error) {
 
 	task := http.Client{}
 
@@ -129,11 +129,9 @@ func (a ThreeLeggedAuth) GetToken(code string) (bearer Bearer, err error) {
 	return
 }
 
-// ThreeLeggedAuthToken will return an ForgeAuthenticator for the provided code
-func (a ThreeLeggedAuth) ThreeLeggedAuthToken(code string) (ThreeLeggedAuthToken, error) {
-	authTkn := ThreeLeggedAuthToken{
-		ThreeLeggedAuth: a,
-	}
+// AuthToken will return an ForgeAuthenticator for the provided code
+func (a Auth) AuthToken(code string) (AuthToken, error) {
+	authTkn := AuthToken{Auth: a}
 	bearer, err := a.GetToken(code)
 	if err != nil {
 		return authTkn, err
@@ -146,8 +144,8 @@ func (a ThreeLeggedAuth) ThreeLeggedAuthToken(code string) (ThreeLeggedAuthToken
 }
 
 // RefreshToken is used to get a new access token by using the refresh token provided by GetToken
-func (a ThreeLeggedAuth) RefreshToken(refreshToken string) (bearer *Bearer, err error) {
-	bearer = new(Bearer)
+func (a Auth) RefreshToken(refreshToken string) (bearer *oauth.Bearer, err error) {
+	bearer = new(oauth.Bearer)
 	task := http.Client{}
 
 	body := url.Values{}

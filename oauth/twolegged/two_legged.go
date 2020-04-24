@@ -1,4 +1,4 @@
-package oauth
+package twolegged
 
 import (
 	"bytes"
@@ -9,38 +9,39 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
-// TwoLeggedAuth struct holds data necessary for making requests in 2-legged context
-type TwoLeggedAuth struct {
-	AuthData
+// Auth struct holds data necessary for making requests in 2-legged context
+type Auth struct {
+	oauth.AuthData
 }
 
-// TwoLeggedAuthenticator interface defines the method necessary to qualify as 2-legged authenticator
-type TwoLeggedAuthenticator interface {
-	Authenticate(scope string) (Bearer, error)
+// Authenticator interface defines the method necessary to qualify as 2-legged authenticator
+type Authenticator interface {
+	Authenticate(scope scopes.Scope) (*oauth.Bearer, error)
 }
 
-// NewTwoLeggedClient returns a 2-legged authenticator with default host and authPath
-func NewTwoLeggedClient(clientID, clientSecret string) TwoLeggedAuth {
-	return TwoLeggedAuth{
-		AuthData: AuthDataForClient(clientID, clientSecret),
+// NewClient returns a 2-legged authenticator with default host and authPath
+func NewClient(clientID, clientSecret string) Auth {
+	return Auth{
+		AuthData: oauth.AuthDataForClient(clientID, clientSecret),
 	}
 }
 
 // GetTokenWithScope will get the a token for the given scope
-func (a TwoLeggedAuth) GetTokenWithScope(scope scopes.Scope) (*Bearer, error) {
+func (a Auth) GetTokenWithScope(scope scopes.Scope) (*oauth.Bearer, error) {
 	return a.Authenticate(scope)
 }
 
 // Authenticate allows getting a token with a given scope
-func (a TwoLeggedAuth) Authenticate(scope scopes.Scope) (bearer *Bearer, err error) {
+func (a Auth) Authenticate(scope scopes.Scope) (bearer *oauth.Bearer, err error) {
 
 	if !scope.IsValid() {
 		return nil, errors.New("Invalid scope")
 	}
-	bearer = new(Bearer)
+	bearer = new(oauth.Bearer)
 	task := http.Client{}
 
 	body := url.Values{}

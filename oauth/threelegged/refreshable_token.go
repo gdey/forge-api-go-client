@@ -1,28 +1,30 @@
-package oauth
+package threelegged
 
 import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 type RefreshableToken struct {
-	bearer          *Bearer
+	bearer          *oauth.Bearer
 	TokenExpireTime time.Time
 	readMutex       sync.Mutex
 	writeMutex      sync.Mutex
 }
 
-func NewRefreshableToken(bearer *Bearer, expiryTime time.Time) *RefreshableToken {
+func NewRefreshableToken(bearer *oauth.Bearer, expiryTime time.Time) *RefreshableToken {
 	return &RefreshableToken{
 		bearer:          bearer,
 		TokenExpireTime: expiryTime,
 	}
 }
 
-func (t *RefreshableToken) RefreshTokenIfRequired(auth ThreeLeggedAuth) error {
+func (t *RefreshableToken) RefreshTokenIfRequired(auth Auth) error {
 	if t == nil {
-		return errors.New("InValid Token")
+		return errors.New("Invalid Token")
 	}
 
 	// Check if token has expired
@@ -53,7 +55,7 @@ func (t *RefreshableToken) RefreshTokenIfRequired(auth ThreeLeggedAuth) error {
 	return nil
 }
 
-func (t *RefreshableToken) Bearer() *Bearer {
+func (t *RefreshableToken) Bearer() *oauth.Bearer {
 	t.readMutex.Lock()
 	defer t.readMutex.Unlock()
 	return t.bearer

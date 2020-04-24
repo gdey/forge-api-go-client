@@ -7,6 +7,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 const (
@@ -24,7 +25,7 @@ var api HubAPI
 // NewHubAPIWithCredentials returns a Hub API client with default configurations
 func NewHubAPIWithCredentials(ClientID string, ClientSecret string) HubAPI {
 	return HubAPI{
-		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
 	}
 }
 

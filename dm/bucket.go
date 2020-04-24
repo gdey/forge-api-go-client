@@ -8,6 +8,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 const (
@@ -30,7 +31,7 @@ func (api BucketAPI) Path() string {
 // NewBucketAPIWithCredentials returns a Bucket API client with default configurations
 func NewBucketAPIWithCredentials(ClientID string, ClientSecret string) BucketAPI {
 	return BucketAPI{
-		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
 	}
 }
 

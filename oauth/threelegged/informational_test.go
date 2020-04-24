@@ -1,9 +1,9 @@
-package oauth_test
+package threelegged_test
 
 import (
 	"fmt"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/threelegged"
 )
 
 //TODO: enable it after having set up a pipeline for auto-creating a 3-legged oauth token
@@ -43,7 +43,7 @@ func ExampleInformation_AboutMe() {
 
 	aThreeLeggedToken := "put a valid 3-legged token here"
 
-	info := oauth.NewInformationQuerier()
+	info := threelegged.NewInformationQuerier()
 
 	profile, err := info.AboutMe(aThreeLeggedToken)
 

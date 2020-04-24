@@ -11,6 +11,7 @@ package recap
 import (
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
+	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 const (
@@ -26,7 +27,7 @@ type API struct {
 // NewAPIWithCredentials returns a ReCap API client with default configurations
 func NewAPIWithCredentials(ClientID string, ClientSecret string) API {
 	return API{
-		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
+		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
 	}
 }
 
