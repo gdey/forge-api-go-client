@@ -3,27 +3,33 @@ package dm
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"strconv"
+
 	"github.com/gdey/forge-api-go-client/oauth"
+)
+
+const (
+	DefaultBucketAPIPath = "/oss/v2/buckets"
 )
 
 // BucketAPI holds the necessary data for making Bucket related calls to Forge Data Management service
 type BucketAPI struct {
-	oauth.TwoLeggedAuth
-	BucketAPIPath string
+	oauth.ForgeAuthenticator
+	APIPath string
 }
 
-type BucketAPI3L struct {
-	oauth.ThreeLeggedAuth
-	BucketAPIPath string
+func (api BucketAPI) Path() string {
+	if api.APIPath != "" {
+		return api.ForgeAuthenticator.HostPath(api.APIPath)
+	}
+	return api.ForgeAuthenticator.HostPath(DefaultBucketAPIPath)
 }
 
 // NewBucketAPIWithCredentials returns a Bucket API client with default configurations
 func NewBucketAPIWithCredentials(ClientID string, ClientSecret string) BucketAPI {
 	return BucketAPI{
-		oauth.NewTwoLeggedClient(ClientID, ClientSecret),
-		"/oss/v2/buckets",
+		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
 	}
 }
 
@@ -47,12 +53,12 @@ type BucketDetails struct {
 
 // ErrorResult reflects the body content when a request failed (g.e. Bad request or key conflict)
 type ErrorResult struct {
-	Reason string `json:"reason"`
-  StatusCode int
+	Reason     string `json:"reason"`
+	StatusCode int
 }
 
-func (e *ErrorResult) Error() string{
-  return "[" + strconv.Itoa(e.StatusCode) + "] " + e.Reason
+func (e *ErrorResult) Error() string {
+	return fmt.Sprintf("[%d]%s", e.StatusCode, e.Reason)
 }
 
 // ListedBuckets reflects the response when query Data Management API for buckets associated with current Forge secrets.
@@ -65,51 +71,42 @@ type ListedBuckets struct {
 	Next string `json:"next"`
 }
 
-
 // CreateBucket creates and returns details of created bucket, or an error on failure
 func (api BucketAPI) CreateBucket(bucketKey, policyKey string) (result BucketDetails, err error) {
-	bearer, err := api.Authenticate("bucket:create")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketCreate)
 	if err != nil {
-		return
+		return result, err
 	}
-	path := api.Host + api.BucketAPIPath
-	result, err = createBucket(path, bucketKey, policyKey, bearer.AccessToken)
-
-	return
+	return createBucket(api.Path(), bucketKey, policyKey, bearer.AccessToken)
 }
 
 // DeleteBucket deletes bucket given its key.
 // 	WARNING: The bucket delete call is undocumented.
 func (api BucketAPI) DeleteBucket(bucketKey string) error {
-	bearer, err := api.Authenticate("bucket:delete")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketCreate)
 	if err != nil {
 		return err
 	}
-	path := api.Host + api.BucketAPIPath
-
-	return deleteBucket(path, bucketKey, bearer.AccessToken)
+	return deleteBucket(api.Path(), bucketKey, bearer.AccessToken)
 }
 
 // ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api BucketAPI) ListBuckets(region, limit, startAt string) (result ListedBuckets, err error) {
-	bearer, err := api.Authenticate("bucket:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketRead)
 	if err != nil {
-		return
+		return result, err
 	}
-	path := api.Host + api.BucketAPIPath
-
-	return listBuckets(path, region, limit, startAt, bearer.AccessToken)
+	return listBuckets(api.Path(), region, limit, startAt, bearer.AccessToken)
 }
 
 // GetBucketDetails returns information associated to a bucket. See BucketDetails struct.
 func (api BucketAPI) GetBucketDetails(bucketKey string) (result BucketDetails, err error) {
-	bearer, err := api.Authenticate("bucket:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketRead)
 	if err != nil {
-		return
+		return result, err
 	}
-	path := api.Host + api.BucketAPIPath
 
-	return getBucketDetails(path, bucketKey, bearer.AccessToken)
+	return getBucketDetails(api.Path(), bucketKey, bearer.AccessToken)
 }
 
 /*
@@ -134,10 +131,10 @@ func getBucketDetails(path, bucketKey, token string) (result BucketDetails, err 
 	}
 	defer response.Body.Close()
 
-  decoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    err = &ErrorResult{StatusCode:response.StatusCode}
-    decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
@@ -177,10 +174,10 @@ func listBuckets(path, region, limit, startAt, token string) (result ListedBucke
 		return
 	}
 	defer response.Body.Close()
-  decoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    err = &ErrorResult{StatusCode:response.StatusCode}
-    decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
@@ -220,8 +217,8 @@ func createBucket(path, bucketKey, policyKey, token string) (result BucketDetail
 
 	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    	err = &ErrorResult{StatusCode:response.StatusCode}
-    	decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
@@ -248,10 +245,10 @@ func deleteBucket(path, bucketKey, token string) (err error) {
 		return
 	}
 	defer response.Body.Close()
-  decoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    err = &ErrorResult{StatusCode:response.StatusCode}
-    decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 

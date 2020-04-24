@@ -14,9 +14,11 @@ func TestThreeLeggedAuth_Authorize(t *testing.T) {
 
 	client := oauth.NewThreeLeggedClient(clientID,
 		clientSecret,
-		"http://localhost:3009/callback")
+		"http://localhost:3009/callback",
+		oauth.ScopeDataRead|oauth.ScopeDataWrite,
+	)
 
-	authLink, err := client.Authorize("data:read data:write", "something that will be passed back")
+	authLink, err := client.Authorize("something that will be passed back")
 
 	if err != nil {
 		t.Errorf("Could not create the authorization link, got: %s", err.Error())

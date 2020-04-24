@@ -7,18 +7,28 @@ import (
 	"github.com/gdey/forge-api-go-client/oauth"
 )
 
+const (
+	DefaultFolderAPIPath = "/data/v1/projects"
+)
+
 // FolderAPI holds the necessary data for making calls to Forge Data Management service
 type FolderAPI struct {
-	oauth.TwoLeggedAuth
-	FolderAPIPath string
+	oauth.ForgeAuthenticator
+	APIPath string
 }
 
 // NewFolderAPIWithCredentials returns a Folder API client with default configurations
 func NewFolderAPIWithCredentials(ClientID string, ClientSecret string) FolderAPI {
 	return FolderAPI{
-		oauth.NewTwoLeggedClient(ClientID, ClientSecret),
-		"/data/v1/projects",
+		ForgeAuthenticator: oauth.NewTwoLeggedClient(ClientID, ClientSecret),
 	}
+}
+
+func (api FolderAPI) Path() string {
+	if api.APIPath != "" {
+		return api.ForgeAuthenticator.HostPath(api.APIPath)
+	}
+	return api.ForgeAuthenticator.HostPath(DefaultFolderAPIPath)
 }
 
 // ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
@@ -26,24 +36,21 @@ func (api FolderAPI) GetFolderDetails(projectKey, folderKey string) (result Forg
 
 	// TO DO: take in optional header arguments
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-folders-folder_id-GET/
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
 
-	path := api.Host + api.FolderAPIPath
-
-	return getFolderDetails(path, projectKey, folderKey, bearer.AccessToken)
+	return getFolderDetails(api.Path(), projectKey, folderKey, bearer.AccessToken)
 }
 
 func (api FolderAPI) GetFolderContents(projectKey, folderKey string) (result ForgeResponseArray, err error) {
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
-	path := api.Host + api.FolderAPIPath
 
-	return getFolderContents(path, projectKey, folderKey, bearer.AccessToken)
+	return getFolderContents(api.Path(), projectKey, folderKey, bearer.AccessToken)
 }
 
 /*

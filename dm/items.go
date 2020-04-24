@@ -3,49 +3,45 @@ package dm
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gdey/forge-api-go-client/oauth"
 )
 
 // ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api FolderAPI) GetItemDetails(projectKey, itemKey string) (result ForgeResponseObject, err error) {
-	
+
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
 
-	path := api.Host + api.FolderAPIPath
-
-	return getItemDetails(path, projectKey, itemKey, bearer.AccessToken)
+	return getItemDetails(api.Path(), projectKey, itemKey, bearer.AccessToken)
 }
 
 func (api FolderAPI) GetItemTip(projectKey, itemKey string) (result ForgeResponseObject, err error) {
-	
+
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
 
-	path := api.Host + api.FolderAPIPath
-
-	return getItemDetails(path, projectKey, itemKey, bearer.AccessToken)
+	return getItemTip(api.Path(), projectKey, itemKey, bearer.AccessToken)
 }
 
 func (api FolderAPI) GetItemVersions(projectKey, itemKey string) (result ForgeResponseArray, err error) {
-	
+
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.Authenticate("data:read")
+	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
 	if err != nil {
 		return
 	}
 
-	path := api.Host + api.FolderAPIPath
-
-	return getItemVersions(path, projectKey, itemKey, "", "", "", "", "", "", bearer.AccessToken)
+	return getItemVersions(api.Path(), projectKey, itemKey, "", "", "", "", "", "", bearer.AccessToken)
 }
 
 /*
@@ -68,11 +64,11 @@ func getItemDetails(path, projectKey, itemKey, token string) (result ForgeRespon
 		return
 	}
 	defer response.Body.Close()
-  
-  	decoder := json.NewDecoder(response.Body)
+
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    	err = &ErrorResult{StatusCode:response.StatusCode}
-    	decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
@@ -98,11 +94,11 @@ func getItemTip(path, projectKey, itemKey, token string) (result ForgeResponseOb
 		return
 	}
 	defer response.Body.Close()
-  
-  	decoder := json.NewDecoder(response.Body)
+
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    	err = &ErrorResult{StatusCode:response.StatusCode}
-    	decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
@@ -144,18 +140,17 @@ func getItemVersions(path, projectKey, itemKey, refType, id, extension, versionN
 
 	req.URL.RawQuery = params.Encode()
 
-
 	req.Header.Set("Authorization", "Bearer "+token)
 	response, err := task.Do(req)
 	if err != nil {
 		return
 	}
 	defer response.Body.Close()
-  
-  	decoder := json.NewDecoder(response.Body)
+
+	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-    	err = &ErrorResult{StatusCode:response.StatusCode}
-    	decoder.Decode(err)
+		err = &ErrorResult{StatusCode: response.StatusCode}
+		decoder.Decode(err)
 		return
 	}
 
