@@ -1,54 +1,59 @@
-package oauth
+package scopes
 
 import (
 	"fmt"
 	"strings"
 )
 
-// Scopes represents a set of requested scopes
+// Scope represents a set of requested scopes
 // https://forge.autodesk.com/en/docs/oauth/v2/developers_guide/scopes/
-type Scopes uint64
+type Scope uint64
 
 const (
-	// ScopeUserProfileRead allow the app to view the user's profile
-	ScopeUserProfileRead = Scopes(1 << iota)
-	// ScopeUserRead allows the app to view the user's profile
-	ScopeUserRead
-	// ScopeUserWrite allow the app to write to the user's profile
-	ScopeUserWrite
-	// ScopeViewablesRead View your viewable data
-	ScopeViewablesRead
-	// ScopeDataRead view your data
-	ScopeDataRead
-	// ScopeDataWrite manage your data
-	ScopeDataWrite
+	// UserProfileRead allow the app to view the user's profile
+	UserProfileRead = Scope(1 << iota)
 
-	//ScopeDataCreate write your data
-	ScopeDataCreate
+	// UserRead allows the app to view the user's profile
+	UserRead
 
-	//ScopeDataSearch search across your data
-	ScopeDataSearch
+	// UserWrite allow the app to write to the user's profile
+	UserWrite
 
-	//ScopeBucketCreate creates new buckets
-	ScopeBucketCreate
+	// ViewablesRead View your viewable data
+	ViewablesRead
 
-	//ScopeBucketRead view your buckets
-	ScopeBucketRead
+	// DataRead view your data
+	DataRead
 
-	//ScopeBucketUpdate update your buckets
-	ScopeBucketUpdate
+	// DataWrite manage your data
+	DataWrite
 
-	//ScopeBucketDelete delete your buckets
-	ScopeBucketDelete
+	// DataCreate write your data
+	DataCreate
 
-	// ScopeCodeAll author or execute your code
-	ScopeCodeAll
+	// DataSearch search across your data
+	DataSearch
 
-	//ScopeAccountRead view your product and service account
-	ScopeAccountRead
+	// BucketCreate creates new buckets
+	BucketCreate
 
-	//ScopeAccountWrite manage your product and service accounts
-	ScopeAccountWrite
+	// BucketRead view your buckets
+	BucketRead
+
+	// BucketUpdate update your buckets
+	BucketUpdate
+
+	// BucketDelete delete your buckets
+	BucketDelete
+
+	// CodeAll author or execute your code
+	CodeAll
+
+	// AccountRead view your product and service account
+	AccountRead
+
+	// AccountWrite manage your product and service accounts
+	AccountWrite
 
 	scopeEnd // should be last element
 )
@@ -71,7 +76,7 @@ var scopes = [...]string{
 	"account:write",
 }
 
-var invalidMask Scopes
+var invalidMask Scope
 
 func init() {
 	if 1<<len(scopes) != scopeEnd {
@@ -86,14 +91,14 @@ func init() {
 	// setup invalidMask
 	invalidMask = ^invalidMask
 	for i := 0; i < len(scopes); i++ {
-		invalidMask &= ^Scopes(1 << i)
+		invalidMask &= ^Scope(1 << i)
 	}
 }
 
-//ScopeFor takes a space seprated list of scopes and returns the Scope
+// For takes a space seprated list of scopes and returns the Scope
 // set for it.
-func ScopeFor(val string) Scopes {
-	var scope Scopes
+func For(val string) Scope {
+	var scope Scope
 	scps := strings.Split(" ", strings.ToLower(val))
 	if len(scps) == 0 {
 		return scope
@@ -104,7 +109,7 @@ func ScopeFor(val string) Scopes {
 			if scp != s {
 				continue
 			}
-			scope |= Scopes(1 << j)
+			scope |= Scope(1 << j)
 			break
 		}
 	}
@@ -113,13 +118,13 @@ func ScopeFor(val string) Scopes {
 }
 
 // Allows checks to see if s allows for all scopes in s1
-func (s Scopes) Allows(s1 Scopes) bool { return s&s1 == s1 }
+func (s Scope) Allows(s1 Scope) bool { return s&s1 == s1 }
 
 // IsValid checks to see if at least one known scope is encoded
-func (s Scopes) IsValid() bool { return s != 0 && s&invalidMask == 0 }
+func (s Scope) IsValid() bool { return s != 0 && s&invalidMask == 0 }
 
 // String will return the string version of the set of scopes
-func (s Scopes) String() string {
+func (s Scope) String() string {
 	if s == 0 {
 		// no scopes defined
 		return ""

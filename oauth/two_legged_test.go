@@ -8,6 +8,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/env"
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 func TestAuthenticate(t *testing.T) {
@@ -17,7 +18,7 @@ func TestAuthenticate(t *testing.T) {
 	t.Run("Valid Forge Secrets", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
-		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
+		bearer, err := authenticator.Authenticate(scopes.DataRead)
 
 		if err != nil {
 			t.Error(err.Error())
@@ -31,7 +32,7 @@ func TestAuthenticate(t *testing.T) {
 	t.Run("Invalid Forge Secrets", func(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient("", clientSecret)
 
-		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
+		bearer, err := authenticator.Authenticate(scopes.DataRead)
 
 		if err == nil {
 			t.Errorf("Expected to fail due to wrong credentials, but got %v", bearer)
@@ -46,7 +47,7 @@ func TestAuthenticate(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
 		// Get a bad scope. if ScopeAccountWrite is not the last scope, then this will fail
-		var badScope oauth.Scopes
+		var badScope scopes.Scope
 		bearer, err := authenticator.Authenticate(badScope)
 
 		if err == nil {
@@ -62,7 +63,7 @@ func TestAuthenticate(t *testing.T) {
 		authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 		authenticator.Host = "http://localhost"
 
-		bearer, err := authenticator.Authenticate(oauth.ScopeDataRead)
+		bearer, err := authenticator.Authenticate(scopes.DataRead)
 
 		if err == nil {
 			t.Errorf("Expected to fail due to wrong host, but got %v\n", bearer)
@@ -87,7 +88,7 @@ func ExampleTwoLeggedAuth_Authenticate() {
 	authenticator := oauth.NewTwoLeggedClient(clientID, clientSecret)
 
 	// request a token with needed scopes, separated by spaces
-	bearer, err := authenticator.Authenticate(oauth.ScopeDataRead | oauth.ScopeDataWrite)
+	bearer, err := authenticator.Authenticate(scopes.DataRead | scopes.DataWrite)
 
 	if err != nil || len(bearer.AccessToken) == 0 {
 		log.Fatalf("Could not get from env the Forge secrets")

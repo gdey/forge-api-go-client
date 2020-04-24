@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 const (
@@ -73,7 +74,7 @@ type ListedBuckets struct {
 
 // CreateBucket creates and returns details of created bucket, or an error on failure
 func (api BucketAPI) CreateBucket(bucketKey, policyKey string) (result BucketDetails, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketCreate)
+	bearer, err := api.GetTokenWithScope(scopes.BucketCreate)
 	if err != nil {
 		return result, err
 	}
@@ -83,7 +84,7 @@ func (api BucketAPI) CreateBucket(bucketKey, policyKey string) (result BucketDet
 // DeleteBucket deletes bucket given its key.
 // 	WARNING: The bucket delete call is undocumented.
 func (api BucketAPI) DeleteBucket(bucketKey string) error {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketCreate)
+	bearer, err := api.GetTokenWithScope(scopes.BucketCreate)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (api BucketAPI) DeleteBucket(bucketKey string) error {
 
 // ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api BucketAPI) ListBuckets(region, limit, startAt string) (result ListedBuckets, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketRead)
+	bearer, err := api.GetTokenWithScope(scopes.BucketRead)
 	if err != nil {
 		return result, err
 	}
@@ -101,7 +102,7 @@ func (api BucketAPI) ListBuckets(region, limit, startAt string) (result ListedBu
 
 // GetBucketDetails returns information associated to a bucket. See BucketDetails struct.
 func (api BucketAPI) GetBucketDetails(bucketKey string) (result BucketDetails, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeBucketRead)
+	bearer, err := api.GetTokenWithScope(scopes.BucketRead)
 	if err != nil {
 		return result, err
 	}

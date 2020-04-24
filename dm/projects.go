@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 // ListProjects returns a list of all buckets created or associated with Forge secrets used for token creation
@@ -12,7 +12,7 @@ func (api HubAPI) ListProjects(hubKey string) (result ForgeResponseArray, err er
 
 	// TO DO: take in optional arguments for query params: id, ext, page, limit
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/hubs-hub_id-projects-GET/
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -21,7 +21,7 @@ func (api HubAPI) ListProjects(hubKey string) (result ForgeResponseArray, err er
 }
 
 func (api HubAPI) GetProjectDetails(hubKey, projectKey string) (result ForgeResponseObject, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -30,7 +30,7 @@ func (api HubAPI) GetProjectDetails(hubKey, projectKey string) (result ForgeResp
 }
 
 func (api HubAPI) GetTopFolders(hubKey, projectKey string) (result ForgeResponseArray, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}

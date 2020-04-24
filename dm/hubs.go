@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 const (
@@ -35,7 +36,7 @@ func (api HubAPI) Path() string {
 }
 
 func (api HubAPI) GetHubs() (result ForgeResponseArray, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -43,7 +44,7 @@ func (api HubAPI) GetHubs() (result ForgeResponseArray, err error) {
 }
 
 func (api HubAPI) GetHubDetails(hubKey string) (result ForgeResponseObject, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}

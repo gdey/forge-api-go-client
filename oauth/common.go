@@ -3,6 +3,8 @@ package oauth
 import (
 	"strings"
 	"time"
+
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 const (
@@ -75,6 +77,6 @@ func (a AuthData) HostPath(rest string) string {
 // a 2-legged and a 3-legged context.
 // 	This provides useful when an API accepts both 2-legged and 3-legged context tokens
 type ForgeAuthenticator interface {
-	GetTokenWithScope(scope Scopes) (*Bearer, error)
+	GetTokenWithScope(scope scopes.Scope) (*Bearer, error)
 	HostPath(string) string
 }

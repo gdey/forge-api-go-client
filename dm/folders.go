@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 const (
@@ -36,7 +37,7 @@ func (api FolderAPI) GetFolderDetails(projectKey, folderKey string) (result Forg
 
 	// TO DO: take in optional header arguments
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-folders-folder_id-GET/
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -45,7 +46,7 @@ func (api FolderAPI) GetFolderDetails(projectKey, folderKey string) (result Forg
 }
 
 func (api FolderAPI) GetFolderContents(projectKey, folderKey string) (result ForgeResponseArray, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}

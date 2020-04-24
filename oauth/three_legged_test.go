@@ -5,6 +5,7 @@ import (
 
 	"github.com/gdey/forge-api-go-client/env"
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 func TestThreeLeggedAuth_Authorize(t *testing.T) {
@@ -15,7 +16,7 @@ func TestThreeLeggedAuth_Authorize(t *testing.T) {
 	client := oauth.NewThreeLeggedClient(clientID,
 		clientSecret,
 		"http://localhost:3009/callback",
-		oauth.ScopeDataRead|oauth.ScopeDataWrite,
+		scopes.DataRead|scopes.DataWrite,
 	)
 
 	authLink, err := client.Authorize("something that will be passed back")

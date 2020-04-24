@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 var (
@@ -168,7 +169,7 @@ func (api ModelDerivativeAPI) Path() string {
 
 // TranslateWithParams triggers translation job with settings specified in given TranslationParams
 func (api ModelDerivativeAPI) TranslateWithParams(params TranslationParams) (result TranslationResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead | oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead | scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -181,7 +182,7 @@ func (api ModelDerivativeAPI) TranslateWithParams(params TranslationParams) (res
 // TranslateToSVF is a helper function that will use the TranslationSVFPreset for translating into svf a given ObjectID.
 // It will also take care of converting objectID into Base64 (URL Safe) encoded URN.
 func (api ModelDerivativeAPI) TranslateToSVF(objectID string) (result TranslationResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead | oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead | scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -192,7 +193,7 @@ func (api ModelDerivativeAPI) TranslateToSVF(objectID string) (result Translatio
 }
 
 func (api ModelDerivativeAPI) GetManifest(urn string) (result ManifestResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -200,7 +201,7 @@ func (api ModelDerivativeAPI) GetManifest(urn string) (result ManifestResult, er
 }
 
 func (api ModelDerivativeAPI) GetMetadata(urn string) (result MetadataResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -208,7 +209,7 @@ func (api ModelDerivativeAPI) GetMetadata(urn string) (result MetadataResult, er
 }
 
 func (api ModelDerivativeAPI) GetObjectTree(urn string, viewId string) (status int, result TreeResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return status, result, err
 	}
@@ -216,7 +217,7 @@ func (api ModelDerivativeAPI) GetObjectTree(urn string, viewId string) (status i
 }
 
 func (api ModelDerivativeAPI) GetPropertiesStream(urn string, viewId string) (status int, result io.ReadCloser, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return status, result, err
 	}
@@ -224,7 +225,7 @@ func (api ModelDerivativeAPI) GetPropertiesStream(urn string, viewId string) (st
 }
 
 func (api ModelDerivativeAPI) GetPropertiesObject(urn string, viewId string) (result PropertiesResult, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return result, err
 	}
@@ -232,7 +233,7 @@ func (api ModelDerivativeAPI) GetPropertiesObject(urn string, viewId string) (re
 }
 
 func (api ModelDerivativeAPI) GetThumbnail(urn string) (reader io.ReadCloser, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return nil, err
 	}

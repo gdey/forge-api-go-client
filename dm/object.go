@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 // ObjectDetails reflects the data presented when uploading an object to a bucket or requesting details on object.
@@ -33,7 +33,7 @@ type BucketContent struct {
 // UploadObject adds to specified bucket the given data (can originate from a multipart-form or direct file read).
 // Return details on uploaded object, including the object URN. Check ObjectDetails struct.
 func (api BucketAPI) UploadObject(bucketKey string, objectName string, reader io.Reader) (result ObjectDetails, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return result, err
 	}
@@ -44,7 +44,7 @@ func (api BucketAPI) UploadObject(bucketKey string, objectName string, reader io
 // DownloadObject returns the reader stream of the response body
 // Don't forget to close it!
 func (api BucketAPI) DownloadObject(bucketKey string, objectName string) (reader io.ReadCloser, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return reader, err
 	}
@@ -54,7 +54,7 @@ func (api BucketAPI) DownloadObject(bucketKey string, objectName string) (reader
 
 // ListObjects returns the bucket contains along with details on each item.
 func (api BucketAPI) ListObjects(bucketKey, limit, beginsWith, startAt string) (result BucketContent, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return result, err
 	}

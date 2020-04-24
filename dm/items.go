@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 // ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
@@ -12,7 +12,7 @@ func (api FolderAPI) GetItemDetails(projectKey, itemKey string) (result ForgeRes
 
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -24,7 +24,7 @@ func (api FolderAPI) GetItemTip(projectKey, itemKey string) (result ForgeRespons
 
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -36,7 +36,7 @@ func (api FolderAPI) GetItemVersions(projectKey, itemKey string) (result ForgeRe
 
 	// TO DO: take in optional header argument
 	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}

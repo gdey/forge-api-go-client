@@ -10,6 +10,7 @@ package recap
 
 import (
 	"github.com/gdey/forge-api-go-client/oauth"
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 const (
@@ -41,7 +42,7 @@ func (api API) Path() string {
 // 	formats - should be of type rcm, rcs, obj, ortho or report
 // 	sceneType - should be either "aerial" or "object"
 func (api API) CreatePhotoScene(name string, formats []string, sceneType string) (scene PhotoScene, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -51,7 +52,7 @@ func (api API) CreatePhotoScene(name string, formats []string, sceneType string)
 // AddFileToSceneUsingLink can be used when the needed images are already available remotely
 // and can be uploaded just by providing the remote link
 func (api API) AddFileToSceneUsingLink(sceneID string, link string) (uploads FileUploadingReply, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -61,7 +62,7 @@ func (api API) AddFileToSceneUsingLink(sceneID string, link string) (uploads Fil
 // AddFileToSceneUsingData can be used when the image is already available as a byte slice,
 // be it read from a local file or as a result/body of a POST request
 func (api API) AddFileToSceneUsingData(sceneID string, data []byte) (uploads FileUploadingReply, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -70,7 +71,7 @@ func (api API) AddFileToSceneUsingData(sceneID string, data []byte) (uploads Fil
 
 // StartSceneProcessing will trigger the processing of a specified scene that can be canceled any time
 func (api API) StartSceneProcessing(sceneID string) (result SceneStartProcessingReply, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return
 	}
@@ -80,7 +81,7 @@ func (api API) StartSceneProcessing(sceneID string) (result SceneStartProcessing
 // GetSceneProgress polls the scene processing status and progress
 //	Note: instead of polling, consider using the callback parameter that can be specified upon scene creation
 func (api API) GetSceneProgress(sceneID string) (progress SceneProgressReply, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -91,7 +92,7 @@ func (api API) GetSceneProgress(sceneID string) (progress SceneProgressReply, er
 //	Note: The link specified in SceneResultReplies will be available for the time specified in reply,
 //	even if the scene is deleted
 func (api API) GetSceneResults(sceneID string, format string) (result SceneResultReply, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataRead)
+	bearer, err := api.GetTokenWithScope(scopes.DataRead)
 	if err != nil {
 		return
 	}
@@ -100,7 +101,7 @@ func (api API) GetSceneResults(sceneID string, format string) (result SceneResul
 
 // CancelSceneProcessing stops the scene processing, without affecting the already uploaded resources
 func (api API) CancelSceneProcessing(sceneID string) (ID string, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return sceneID, err
 	}
@@ -111,7 +112,7 @@ func (api API) CancelSceneProcessing(sceneID string) (ID string, err error) {
 
 // DeleteScene removes all the resources associated with given scene.
 func (api API) DeleteScene(sceneID string) (ID string, err error) {
-	bearer, err := api.GetTokenWithScope(oauth.ScopeDataWrite)
+	bearer, err := api.GetTokenWithScope(scopes.DataWrite)
 	if err != nil {
 		return
 	}

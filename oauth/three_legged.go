@@ -10,13 +10,15 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 // ThreeLeggedAuth struct holds data necessary for making requests in 3-legged context
 type ThreeLeggedAuth struct {
 	AuthData
 	RedirectURI string `json:"redirect_uri,omitempty"`
-	Scope       Scopes
+	Scope       scopes.Scope
 }
 
 type ThreeLeggedAuthToken struct {
@@ -24,7 +26,7 @@ type ThreeLeggedAuthToken struct {
 	Token *RefreshableToken
 }
 
-func (a ThreeLeggedAuthToken) GetTokenWithScope(scope Scopes) (*Bearer, error) {
+func (a ThreeLeggedAuthToken) GetTokenWithScope(scope scopes.Scope) (*Bearer, error) {
 	if !a.ThreeLeggedAuth.Scope.Allows(scope) {
 		return nil, fmt.Errorf("scopes require: '%v' have '%v'", a.ThreeLeggedAuth.Scope, scope)
 	}
@@ -44,10 +46,10 @@ type ThreeLeggedAuthenticator interface {
 
 // NewThreeLeggedClient returns a 3-legged authenticator with default host and authPath
 // if scope is 0, then ScopeDataRead is set.
-func NewThreeLeggedClient(clientID, clientSecret, redirectURI string, scope Scopes) ThreeLeggedAuth {
+func NewThreeLeggedClient(clientID, clientSecret, redirectURI string, scope scopes.Scope) ThreeLeggedAuth {
 	if scope == 0 {
 		// TOOD(gdey): would ScopeViewableRead be a better things to ask for?
-		scope = ScopeDataRead
+		scope = scopes.DataRead
 	}
 	return ThreeLeggedAuth{
 		AuthData:    AuthDataForClient(clientID, clientSecret),

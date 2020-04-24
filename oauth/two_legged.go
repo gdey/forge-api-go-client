@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
 // TwoLeggedAuth struct holds data necessary for making requests in 2-legged context
@@ -28,10 +30,12 @@ func NewTwoLeggedClient(clientID, clientSecret string) TwoLeggedAuth {
 }
 
 // GetTokenWithScope will get the a token for the given scope
-func (a TwoLeggedAuth) GetTokenWithScope(scope Scopes) (*Bearer, error) { return a.Authenticate(scope) }
+func (a TwoLeggedAuth) GetTokenWithScope(scope scopes.Scope) (*Bearer, error) {
+	return a.Authenticate(scope)
+}
 
 // Authenticate allows getting a token with a given scope
-func (a TwoLeggedAuth) Authenticate(scope Scopes) (bearer *Bearer, err error) {
+func (a TwoLeggedAuth) Authenticate(scope scopes.Scope) (bearer *Bearer, err error) {
 
 	if !scope.IsValid() {
 		return nil, errors.New("Invalid scope")
