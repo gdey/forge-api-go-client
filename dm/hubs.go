@@ -2,21 +2,81 @@ package dm
 
 import (
 	// "fmt"
-	"encoding/json"
-	"net/http"
+	"context"
+	"net/url"
+	"strings"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	clientapi "github.com/gdey/forge-api-go-client/api"
+	"github.com/gdey/forge-api-go-client/api/filters"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
 
 const (
-	DefaultHubAPIPAth = "/project/v1/hubs"
+	DefaultHubAPIPath = "/project/v1/hubs"
 )
+
+// HubFilterType to filter by the type of the hub
+type HubFilterType uint8
+
+const (
+	// HubFilterType Will filter return only hub that are part of a TEAM
+	HubFilterTypeTeam = HubFilterType(1 << iota)
+
+	// HubFilterType Will filter return only BIM360 hubs
+	HubFilterTypeBIM360
+
+	// HubFilterType Will filter return only personal hubs
+	HubFilterTypePersonal
+
+	// HubFilterTypeAll will return all hubs
+	HubFilterTypeALL = HubFilterType(0)
+	HubFilterKeyType = filters.KeyExtensionType
+)
+
+var hubFilterStringsType = [...]string{
+	"hubs:autodesk.core:Hub",
+	"hubs:autodesk.bim360:Account",
+	"hubs:autodesk.a360:PersonalHub",
+}
+
+func (filter HubFilterType) Add(values url.Values) error {
+	for i, val := range hubFilterStringsType {
+		if (filter & (1 << i)) == (1 << i) {
+			values.Add(HubFilterKeyType, val)
+		}
+	}
+	return nil
+}
+func (filter HubFilterType) String() string {
+	var str strings.Builder
+	for i, val := range hubFilterStringsType {
+		if (filter & (1 << i)) == (1 << i) {
+			if i != 0 {
+				str.WriteRune(' ')
+			}
+			str.WriteString(val)
+		}
+	}
+	return str.String()
+}
+
+type HubsFilters struct {
+	Type HubFilterType
+	ID   filters.ID
+	Name filters.Name
+}
+
+func (filter *HubsFilters) Add(values url.Values) (err error) {
+	if filter == nil {
+		return nil
+	}
+	return filters.RunAll(values, filter.Type, filter.ID, filter.Name)
+}
 
 // HubAPI holds the necessary data for making calls to Forge Data Management service
 type HubAPI struct {
-	oauth.ForgeAuthenticator
+	Client  *clientapi.Client
 	APIPath string
 }
 
@@ -25,97 +85,36 @@ var api HubAPI
 // NewHubAPIWithCredentials returns a Hub API client with default configurations
 func NewHubAPIWithCredentials(ClientID string, ClientSecret string) HubAPI {
 	return HubAPI{
-		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
+		Client: clientapi.NewClient(twolegged.NewAuth(ClientID, ClientSecret)),
 	}
 }
 
-func (api HubAPI) Path() string {
-	if api.APIPath != "" {
-		return api.ForgeAuthenticator.HostPath(api.APIPath)
+func (api HubAPI) Path(paths ...string) []string {
+	if api.APIPath == "" {
+		return append([]string{DefaultHubAPIPath}, paths...)
 	}
-	return api.ForgeAuthenticator.HostPath(DefaultHubAPIPAth)
+	return append([]string{api.APIPath}, paths...)
 }
 
-func (api HubAPI) GetHubs() (result ForgeResponseArray, err error) {
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-	return getHubs(api.Path(), bearer.AccessToken)
+// GetHubs returns a list of know hubs
+func (api HubAPI) GetHubs(hubFilters *HubsFilters) (result ForgeResponseArray, err error) {
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(),
+		&result,
+		hubFilters,
+	)
+	return result, err
 }
 
+// GetHubDetails returns the Details for the given hub
 func (api HubAPI) GetHubDetails(hubKey string) (result ForgeResponseObject, err error) {
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-	return getHubDetails(api.Path(), hubKey, bearer.AccessToken)
-}
-
-/*
- *	SUPPORT FUNCTIONS
- */
-
-func getHubs(path, token string) (result ForgeResponseArray, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path,
-		nil,
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(hubKey),
+		&result,
 	)
-
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
-}
-
-func getHubDetails(path, hubKey, token string) (result ForgeResponseObject, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path+"/"+hubKey,
-		nil,
-	)
-
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+	return result, err
 }

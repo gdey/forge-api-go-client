@@ -3,6 +3,8 @@ package threelegged_test
 import (
 	"fmt"
 
+	"github.com/gdey/forge-api-go-client/oauth"
+
 	"github.com/gdey/forge-api-go-client/oauth/threelegged"
 )
 
@@ -42,10 +44,19 @@ import (
 func ExampleInformation_AboutMe() {
 
 	aThreeLeggedToken := "put a valid 3-legged token here"
+	Auth := threelegged.AuthToken{
+		Token: threelegged.NewRefreshableToken(&oauth.Bearer{
+			TokenType:   "Bearer",
+			ExpiresIn:   60,
+			AccessToken: aThreeLeggedToken,
+		}),
+	}
 
-	info := threelegged.NewInformationQuerier()
+	info := threelegged.Information{
+		AuthToken: Auth,
+	}
 
-	profile, err := info.AboutMe(aThreeLeggedToken)
+	profile, err := info.AboutMe()
 
 	if err != nil {
 		fmt.Printf("[ERROR] Could not retrieve profile, got %s\n", err.Error())
@@ -68,5 +79,6 @@ func ExampleInformation_AboutMe() {
 		profile.LastName,
 		profile.EmailVerified,
 		profile.Var2FaEnabled,
-		profile.ProfileImages)
+		profile.ProfileImages,
+	)
 }

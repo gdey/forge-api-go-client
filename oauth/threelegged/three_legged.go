@@ -2,15 +2,15 @@ package threelegged
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
-	"time"
+	"strings"
 
+	"github.com/gdey/forge-api-go-client/api"
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
@@ -31,11 +31,27 @@ func (a AuthToken) GetTokenWithScope(scope scopes.Scope) (*oauth.Bearer, error) 
 	return a.Token.Bearer(), nil
 }
 
+func (a AuthToken) SetAuthHeader(scope scopes.Scope, header http.Header) error {
+
+	bearer, err := a.GetTokenWithScope(scope)
+	if err != nil {
+		return err
+	}
+	header.Set(oauth.HeaderAuthorization, "Bearer "+bearer.AccessToken)
+	return nil
+}
+
 // Auth struct holds data necessary for making requests in 3-legged context
 type Auth struct {
 	oauth.AuthData
 	RedirectURI string `json:"redirect_uri,omitempty"`
 	Scope       scopes.Scope
+
+	// Implicate will do an implicate token retrieval.
+	// Do not use this unless you know what you are doing.
+	Implicate bool
+
+	client api.Client
 }
 
 // Authenticator interface defines the method necessary to qualify as 3-legged authenticator
@@ -45,9 +61,9 @@ type Authenticator interface {
 	RefreshToken(refreshToken string) (*oauth.Bearer, error)
 }
 
-// NewClient returns a 3-legged authenticator with default host and authPath
+// NewAuth returns a 3-legged authenticator with default host and authPath
 // if scope is 0, then ScopeDataRead is set.
-func NewClient(clientID, clientSecret, redirectURI string, scope scopes.Scope) Auth {
+func NewAuth(clientID, clientSecret, redirectURI string, scope scopes.Scope) Auth {
 	if scope == 0 {
 		scope = scopes.DataRead
 	}
@@ -68,7 +84,7 @@ func NewClient(clientID, clientSecret, redirectURI string, scope scopes.Scope) A
 func (a Auth) Authorize(state string) (string, error) {
 
 	request, err := http.NewRequest("GET",
-		a.Path("/authorize"),
+		strings.Join(a.AuthData.AuthPath("authorize"), "/"),
 		nil,
 	)
 
@@ -78,7 +94,12 @@ func (a Auth) Authorize(state string) (string, error) {
 
 	query := request.URL.Query()
 	query.Add("client_id", a.ClientID)
-	query.Add("response_type", "code")
+	if a.Implicate {
+		query.Add("response_type", "token")
+
+	} else {
+		query.Add("response_type", "code")
+	}
 	query.Add("redirect_uri", a.RedirectURI)
 	query.Add("scope", a.Scope.String())
 	query.Add("state", state)
@@ -91,42 +112,37 @@ func (a Auth) Authorize(state string) (string, error) {
 // GetToken is used to exchange the authorization code for a token and an exchange token
 func (a Auth) GetToken(code string) (bearer oauth.Bearer, err error) {
 
-	task := http.Client{}
-
-	body := url.Values{}
-	body.Add("client_id", a.ClientID)
-	body.Add("client_secret", a.ClientSecret)
-	body.Add("grant_type", "authorization_code")
-	body.Add("code", code)
-	body.Add("redirect_uri", a.RedirectURI)
-
-	req, err := http.NewRequest("POST",
-		a.Path("/gettoken"),
+	body := url.Values{
+		"client_id":     []string{a.ClientID},
+		"client_secret": []string{a.ClientSecret},
+		"grant_type":    []string{"authorization_code"},
+		"code":          []string{code},
+		"redirect_uri":  []string{a.RedirectURI},
+	}
+	res, err := a.client.DoRawRequest(context.Background(), http.MethodPost, 0,
+		a.AuthPath("gettoken"),
+		nil, nil,
+		api.ContentTypeFormEncoded,
 		bytes.NewBufferString(body.Encode()),
 	)
-
 	if err != nil {
-		return
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	response, err := task.Do(req)
-
-	if err != nil {
-		return
+		return bearer, err
 	}
 
-	defer response.Body.Close()
+	defer res.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		content, _ := ioutil.ReadAll(response.Body)
-		err = errors.New("[" + strconv.Itoa(response.StatusCode) + "] " + string(content))
-		return
+	if res.StatusCode != http.StatusOK {
+		content, _ := ioutil.ReadAll(res.Body)
+		return bearer, api.ErrorResult{
+			StatusCode: res.StatusCode,
+			Reason:     string(content),
+		}
 	}
 
-	decoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(&bearer)
 
-	return
+	return bearer, nil
 }
 
 // AuthToken will return an ForgeAuthenticator for the provided code
@@ -136,50 +152,44 @@ func (a Auth) AuthToken(code string) (AuthToken, error) {
 	if err != nil {
 		return authTkn, err
 	}
-	now := time.Now()
-	expiryTime := now.Add(time.Second * time.Duration(bearer.ExpiresIn))
 
-	authTkn.Token = NewRefreshableToken(&bearer, expiryTime)
+	authTkn.Token = NewRefreshableToken(&bearer)
 	return authTkn, nil
 }
 
 // RefreshToken is used to get a new access token by using the refresh token provided by GetToken
 func (a Auth) RefreshToken(refreshToken string) (bearer *oauth.Bearer, err error) {
 	bearer = new(oauth.Bearer)
-	task := http.Client{}
 
-	body := url.Values{}
-	body.Add("client_id", a.ClientID)
-	body.Add("client_secret", a.ClientSecret)
-	body.Add("grant_type", "refresh_token")
-	body.Add("refresh_token", refreshToken)
-	body.Add("scope", a.Scope.String())
+	body := url.Values{
+		"client_id":     []string{a.ClientID},
+		"client_secret": []string{a.ClientSecret},
+		"grant_type":    []string{"refresh_token"},
+		"refresh_token": []string{refreshToken},
+		"scope":         []string{a.Scope.String()},
+	}
 
-	req, err := http.NewRequest("POST",
-		a.Path("/refreshtoken"),
+	res, err := a.client.DoRawRequest(context.Background(), http.MethodPost, 0,
+		a.AuthPath("refreshtoken"),
+		nil, nil,
+		api.ContentTypeFormEncoded,
 		bytes.NewBufferString(body.Encode()),
 	)
-
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	response, err := task.Do(req)
+	defer res.Body.Close()
 
-	if err != nil {
-		return nil, err
+	if res.StatusCode != http.StatusOK {
+		content, _ := ioutil.ReadAll(res.Body)
+		return nil, api.ErrorResult{
+			StatusCode: res.StatusCode,
+			Reason:     string(content),
+		}
 	}
-
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		content, _ := ioutil.ReadAll(response.Body)
-		err = errors.New("[" + strconv.Itoa(response.StatusCode) + "] " + string(content))
-		return nil, err
-	}
-	decoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(bearer)
 
-	return nil, err
+	return bearer, nil
 }

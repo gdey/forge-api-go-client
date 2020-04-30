@@ -18,7 +18,7 @@ func TestProjectAPI_GetProjects(t *testing.T) {
 	testHubKey := os.Getenv("BIM_360_TEST_ACCOUNT_HUBKEY")
 
 	t.Run("List all projects under a given hub", func(t *testing.T) {
-		_, err := hubAPI.ListProjects(testHubKey)
+		_, err := hubAPI.ListProjects(testHubKey, nil)
 
 		if err != nil {
 			t.Fatalf("Failed to get project details: %s\n", err.Error())
@@ -26,7 +26,7 @@ func TestProjectAPI_GetProjects(t *testing.T) {
 	})
 
 	t.Run("List all projects under non-existent hub (should fail)", func(t *testing.T) {
-		_, err := hubAPI.ListProjects(testHubKey + "30091981")
+		_, err := hubAPI.ListProjects(testHubKey+"30091981", nil)
 
 		if err == nil {
 			t.Fatalf("Should fail getting getting projects for non-existing hub\n")

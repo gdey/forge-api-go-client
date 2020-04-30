@@ -16,7 +16,7 @@ func TestAuthenticate(t *testing.T) {
 	clientID, clientSecret := env.GetClientSecretTest(t)
 
 	t.Run("Valid Forge Secrets", func(t *testing.T) {
-		authenticator := twolegged.NewClient(clientID, clientSecret)
+		authenticator := twolegged.NewAuth(clientID, clientSecret)
 
 		bearer, err := authenticator.Authenticate(scopes.DataRead)
 
@@ -30,7 +30,7 @@ func TestAuthenticate(t *testing.T) {
 	})
 
 	t.Run("Invalid Forge Secrets", func(t *testing.T) {
-		authenticator := twolegged.NewClient("", clientSecret)
+		authenticator := twolegged.NewAuth("", clientSecret)
 
 		bearer, err := authenticator.Authenticate(scopes.DataRead)
 
@@ -44,7 +44,7 @@ func TestAuthenticate(t *testing.T) {
 	})
 
 	t.Run("Invalid scope", func(t *testing.T) {
-		authenticator := twolegged.NewClient(clientID, clientSecret)
+		authenticator := twolegged.NewAuth(clientID, clientSecret)
 
 		// Get a bad scope. if ScopeAccountWrite is not the last scope, then this will fail
 		var badScope scopes.Scope
@@ -60,7 +60,7 @@ func TestAuthenticate(t *testing.T) {
 	})
 
 	t.Run("Invalid or unreachable host", func(t *testing.T) {
-		authenticator := twolegged.NewClient(clientID, clientSecret)
+		authenticator := twolegged.NewAuth(clientID, clientSecret)
 		authenticator.Host = "http://localhost"
 
 		bearer, err := authenticator.Authenticate(scopes.DataRead)
@@ -85,7 +85,7 @@ func ExampleTwoLeggedAuth_Authenticate() {
 	}
 
 	// create oauth client
-	authenticator := twolegged.NewClient(clientID, clientSecret)
+	authenticator := twolegged.NewAuth(clientID, clientSecret)
 
 	// request a token with needed scopes, separated by spaces
 	bearer, err := authenticator.Authenticate(scopes.DataRead | scopes.DataWrite)

@@ -100,7 +100,7 @@ func TestBucketAPI_ListBuckets(t *testing.T) {
 	bucketAPI := dm.NewBucketAPIWithCredentials(clientID, clientSecret)
 
 	t.Run("List available buckets", func(t *testing.T) {
-		_, err := bucketAPI.ListBuckets("", "", "")
+		_, err := bucketAPI.ListBuckets(nil)
 
 		if err != nil {
 			t.Fatalf("Failed to list buckets: %s\n", err.Error())
@@ -117,7 +117,7 @@ func TestBucketAPI_ListBuckets(t *testing.T) {
 			t.Errorf("Failed to create a bucket: %s\n", err.Error())
 		}
 
-		list, err := bucketAPI.ListBuckets("", "", "")
+		list, err := bucketAPI.ListBuckets(nil)
 
 		if err != nil {
 			t.Errorf("Failed to list buckets: %s\n", err.Error())

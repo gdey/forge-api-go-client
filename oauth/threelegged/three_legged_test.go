@@ -13,7 +13,7 @@ func TestAuth_Authorize(t *testing.T) {
 	//prepare the credentials
 	clientID, clientSecret := env.GetClientSecretTest(t)
 
-	client := threelegged.NewClient(clientID,
+	client := threelegged.NewAuth(clientID,
 		clientSecret,
 		"http://localhost:3009/callback",
 		scopes.DataRead|scopes.DataWrite,

@@ -15,7 +15,10 @@ type RefreshableToken struct {
 	writeMutex      sync.Mutex
 }
 
-func NewRefreshableToken(bearer *oauth.Bearer, expiryTime time.Time) *RefreshableToken {
+func NewRefreshableToken(bearer *oauth.Bearer) *RefreshableToken {
+
+	now := time.Now()
+	expiryTime := now.Add(time.Second * time.Duration(bearer.ExpiresIn))
 	return &RefreshableToken{
 		bearer:          bearer,
 		TokenExpireTime: expiryTime,

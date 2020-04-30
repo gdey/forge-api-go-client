@@ -1,10 +1,10 @@
 package dm
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
+	"fmt"
 
-	"github.com/gdey/forge-api-go-client/oauth"
+	clientapi "github.com/gdey/forge-api-go-client/api"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 	"github.com/gdey/forge-api-go-client/oauth/twolegged"
 )
@@ -13,108 +13,67 @@ const (
 	DefaultFolderAPIPath = "/data/v1/projects"
 )
 
+// ErrorResult reflects the body content when a request failed (g.e. Bad request or key conflict)
+type ErrorResult struct {
+	Reason     string `json:"reason"`
+	StatusCode int
+}
+
+func (e *ErrorResult) Error() string {
+	return fmt.Sprintf("[%d]`%s`", e.StatusCode, e.Reason)
+}
+
 // FolderAPI holds the necessary data for making calls to Forge Data Management service
 type FolderAPI struct {
-	oauth.ForgeAuthenticator
+	Client  *clientapi.Client
 	APIPath string
 }
 
 // NewFolderAPIWithCredentials returns a Folder API client with default configurations
 func NewFolderAPIWithCredentials(ClientID string, ClientSecret string) FolderAPI {
+	auth := twolegged.NewAuth(ClientID, ClientSecret)
 	return FolderAPI{
-		ForgeAuthenticator: twolegged.NewClient(ClientID, ClientSecret),
+		Client: clientapi.NewClient(auth),
 	}
 }
 
-func (api FolderAPI) Path() string {
-	if api.APIPath != "" {
-		return api.ForgeAuthenticator.HostPath(api.APIPath)
+func (api FolderAPI) Path(paths ...string) []string {
+	if api.APIPath == "" {
+		return append([]string{DefaultFolderAPIPath}, paths...)
 	}
-	return api.ForgeAuthenticator.HostPath(DefaultFolderAPIPath)
+	return append([]string{api.APIPath}, paths...)
 }
 
-// ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api FolderAPI) GetFolderDetails(projectKey, folderKey string) (result ForgeResponseObject, err error) {
 
-	// TO DO: take in optional header arguments
-	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-folders-folder_id-GET/
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-
-	return getFolderDetails(api.Path(), projectKey, folderKey, bearer.AccessToken)
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "folders", folderKey),
+		&result,
+		nil,
+	)
+	return result, err
 }
 
 func (api FolderAPI) GetFolderContents(projectKey, folderKey string) (result ForgeResponseArray, err error) {
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-
-	return getFolderContents(api.Path(), projectKey, folderKey, bearer.AccessToken)
-}
-
-/*
- *	SUPPORT FUNCTIONS
- */
-func getFolderDetails(path, projectKey, folderKey, token string) (result ForgeResponseObject, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path+"/"+projectKey+"/folders/"+folderKey,
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "folders", folderKey, "contents"),
+		&result,
 		nil,
 	)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+	return result, err
 }
 
-func getFolderContents(path, projectKey, folderKey, token string) (result ForgeResponseArray, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path+"/"+projectKey+"/folders/"+folderKey+"/contents",
+func (api FolderAPI) GetFolders(projectKey string) (result ForgeResponseArray, err error) {
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "folders"),
+		&result,
 		nil,
 	)
-
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+	return result, err
 }

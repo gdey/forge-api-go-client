@@ -56,7 +56,7 @@ func TestFolderAPI_GetItemVersions(t *testing.T) {
 	testItemKey := os.Getenv("BIM_360_TEST_ACCOUNT_ITEMKEY")
 
 	t.Run("List item details", func(t *testing.T) {
-		_, err := folderAPI.GetItemVersions(testProjectKey, testItemKey)
+		_, err := folderAPI.GetItemVersions(testProjectKey, testItemKey, nil)
 
 		if err != nil {
 			t.Fatalf("Failed to get item details: %s\n", err.Error())

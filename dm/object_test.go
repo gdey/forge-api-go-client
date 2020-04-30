@@ -19,7 +19,7 @@ func TestBucketAPI_ListObjects(t *testing.T) {
 	testBucketName := env.GetTest(t, "FORGE_OSS_TEST_BUCKET_KEY")
 
 	t.Run("List bucket content", func(t *testing.T) {
-		content, err := bucketAPI.ListObjects(testBucketName, "", "", "")
+		content, err := bucketAPI.ListObjects(testBucketName, nil)
 		if err != nil {
 			t.Fatalf("Failed to list bucket content: %s\n", err.Error())
 		}
@@ -28,7 +28,7 @@ func TestBucketAPI_ListObjects(t *testing.T) {
 	})
 
 	t.Run("List bucket content of non-existing bucket", func(t *testing.T) {
-		content, err := bucketAPI.ListObjects(testBucketName+"hz", "", "", "")
+		content, err := bucketAPI.ListObjects(testBucketName+"hz", nil)
 		if err == nil {
 			t.Fatalf("Expected to fail upon listing a non-existing bucket, but it didn't, got %#v", content)
 		}
@@ -53,7 +53,7 @@ func TestBucketAPI_UploadObject(t *testing.T) {
 	})
 
 	t.Run("List objects in temp bucket, to make sure it is empty", func(t *testing.T) {
-		content, err := bucketAPI.ListObjects(tempBucket, "", "", "")
+		content, err := bucketAPI.ListObjects(tempBucket, nil)
 		if err != nil {
 			t.Fatalf("Failed to list bucket content: %s\n", err.Error())
 		}
@@ -68,13 +68,8 @@ func TestBucketAPI_UploadObject(t *testing.T) {
 			t.Fatal("Cannot open testfile for reading")
 		}
 		defer file.Close()
-		// data, err := ioutil.ReadAll(file) // returns []byte
-		data := io.Reader(file)
-		if err != nil {
-			t.Fatal("Cannot read the testfile")
-		}
 
-		result, err := bucketAPI.UploadObject(tempBucket, "temp_file.rvt", data) // doesn't want []byte as data
+		result, err := bucketAPI.UploadObject(tempBucket, "temp_file.rvt", file) // doesn't want []byte as data
 
 		if err != nil {
 			t.Fatal("Could not upload the test object, got: ", err.Error())

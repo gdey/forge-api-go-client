@@ -1,160 +1,61 @@
 package dm
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
+	"net/url"
 
+	"github.com/gdey/forge-api-go-client/api/filters"
 	"github.com/gdey/forge-api-go-client/oauth/scopes"
 )
 
-// ListBuckets returns a list of all buckets created or associated with Forge secrets used for token creation
 func (api FolderAPI) GetItemDetails(projectKey, itemKey string) (result ForgeResponseObject, err error) {
 
-	// TO DO: take in optional header argument
-	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-
-	return getItemDetails(api.Path(), projectKey, itemKey, bearer.AccessToken)
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "items", itemKey),
+		&result,
+		nil,
+	)
+	return result, err
 }
 
 func (api FolderAPI) GetItemTip(projectKey, itemKey string) (result ForgeResponseObject, err error) {
 
-	// TO DO: take in optional header argument
-	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-
-	return getItemTip(api.Path(), projectKey, itemKey, bearer.AccessToken)
-}
-
-func (api FolderAPI) GetItemVersions(projectKey, itemKey string) (result ForgeResponseArray, err error) {
-
-	// TO DO: take in optional header argument
-	// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-GET/
-	bearer, err := api.GetTokenWithScope(scopes.DataRead)
-	if err != nil {
-		return
-	}
-
-	return getItemVersions(api.Path(), projectKey, itemKey, "", "", "", "", "", "", bearer.AccessToken)
-}
-
-/*
- *	SUPPORT FUNCTIONS
- */
-func getItemDetails(path, projectKey, itemKey, token string) (result ForgeResponseObject, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path+"/"+projectKey+"/items/"+itemKey,
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "items", itemKey, "tip"),
+		&result,
 		nil,
 	)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+	return result, err
 }
 
-func getItemTip(path, projectKey, itemKey, token string) (result ForgeResponseObject, err error) {
-	task := http.Client{}
-
-	req, err := http.NewRequest("GET",
-		path+"/"+projectKey+"/items/"+itemKey+"/tip",
-		nil,
-	)
-	if err != nil {
-		return
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+type ItemVersionFilters struct {
+	Pagination     *filters.Page
+	VersionNumbers filters.VersionNumbers
+	Type           filters.Type
+	ID             filters.ID
+	ExtensionType  filters.ExtensionType
 }
 
-func getItemVersions(path, projectKey, itemKey, refType, id, extension, versionNumber, page, limit, token string) (result ForgeResponseArray, err error) {
-	task := http.Client{}
+func (filter *ItemVersionFilters) Add(values url.Values) error {
+	if filter == nil {
+		return nil
+	}
+	return filters.RunAll(values, filter.Pagination, filter.ID, filter.Type, filter.ExtensionType, filter.VersionNumbers)
+}
 
-	req, err := http.NewRequest("GET",
-		path+"/"+projectKey+"/items/"+itemKey+"/versions",
-		nil,
+// https://forge.autodesk.com/en/docs/data/v2/reference/http/projects-project_id-items-item_id-versions-GET/
+func (api FolderAPI) GetItemVersions(projectKey, itemKey string, filter *ItemVersionFilters) (result ForgeResponseArray, err error) {
+
+	err = api.Client.Get(
+		context.Background(),
+		scopes.DataRead,
+		api.Path(projectKey, "items", itemKey, "versions"),
+		&result,
+		filter,
 	)
-	if err != nil {
-		return
-	}
-
-	params := req.URL.Query()
-	if len(refType) != 0 {
-		params.Add("filter[type]", refType)
-	}
-	if len(id) != 0 {
-		params.Add("filter[id]", id)
-	}
-	if len(extension) != 0 {
-		params.Add("filter[extension.type]", extension)
-	}
-	if len(versionNumber) != 0 {
-		params.Add("filter[versionNumber]", versionNumber)
-	}
-	if len(page) != 0 {
-		params.Add("page[number]", page)
-	}
-	if len(limit) != 0 {
-		params.Add("page[limit]", limit)
-	}
-
-	req.URL.RawQuery = params.Encode()
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	response, err := task.Do(req)
-	if err != nil {
-		return
-	}
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-	if response.StatusCode != http.StatusOK {
-		err = &ErrorResult{StatusCode: response.StatusCode}
-		decoder.Decode(err)
-		return
-	}
-
-	err = decoder.Decode(&result)
-
-	return
+	return result, err
 }
