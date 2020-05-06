@@ -85,7 +85,9 @@ func (c *Client) DoRawRequest(ctx context.Context, method string, scope scopes.S
 	if setHeaders != nil {
 		setHeaders(req.Header)
 	}
-	auth.SetAuthHeader(scope, req.Header)
+	if err := auth.SetAuthHeader(scope, req.Header); err != nil {
+		return nil, fmt.Errorf("DoRawRequest:%w", err)
+	}
 
 	return client.Do(req)
 }
