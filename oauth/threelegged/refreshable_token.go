@@ -25,7 +25,7 @@ func NewRefreshableToken(bearer *oauth.Bearer) *RefreshableToken {
 	}
 }
 
-func (t *RefreshableToken) RefreshTokenIfRequired(auth Auth) error {
+func (t *RefreshableToken) RefreshTokenIfRequired(auth AuthRefresher) error {
 	if t == nil {
 		return errors.New("Invalid Token")
 	}
