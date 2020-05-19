@@ -70,7 +70,7 @@ func (a Auth) Authenticate(scope scopes.Scope) (bearer *oauth.Bearer, err error)
 
 	if res.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(res.Body)
-		return nil, api.ErrorResult{
+		return nil, api.ErrResult{
 			StatusCode: res.StatusCode,
 			Reason:     string(content),
 		}

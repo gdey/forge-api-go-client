@@ -80,6 +80,8 @@ type ForgeAuthenticator interface {
 
 	// Path returns the full url path with the given compentents
 	Path(...string) string
+
 	// SetAuthHeader should set the appropriate http headers for auth
+	// It should refresh any tokens it may have
 	SetAuthHeader(scope scopes.Scope, header http.Header) error
 }

@@ -98,7 +98,7 @@ func (api BucketAPI) DownloadObject(bucketKey string, objectName string) (reader
 
 	if res.StatusCode != http.StatusOK {
 		res.Body.Close()
-		return nil, clientapi.ErrorResult{StatusCode: res.StatusCode}
+		return nil, clientapi.ErrResult{StatusCode: res.StatusCode}
 	}
 	return res.Body, nil
 }

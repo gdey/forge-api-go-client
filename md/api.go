@@ -275,7 +275,7 @@ func (api ModelDerivativeAPI) GetPropertiesObject(urn string, viewID string) (re
 	//using 200 as an error mask since it can be 2xx depending on state
 	if (status & http.StatusOK) == 0 {
 		content, _ := ioutil.ReadAll(stream)
-		return result, clientapi.ErrorResult{StatusCode: status, Reason: string(content)}
+		return result, clientapi.ErrResult{StatusCode: status, Reason: string(content)}
 	}
 	decoder := json.NewDecoder(stream)
 	err = decoder.Decode(&result)
@@ -297,7 +297,7 @@ func (api ModelDerivativeAPI) GetThumbnail(urn string) (reader io.ReadCloser, er
 	}
 	if response.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(response.Body)
-		return nil, clientapi.ErrorResult{StatusCode: response.StatusCode, Reason: string(content)}
+		return nil, clientapi.ErrResult{StatusCode: response.StatusCode, Reason: string(content)}
 	}
 	return response.Body, nil
 }

@@ -97,6 +97,7 @@ func (api HubAPI) Path(paths ...string) []string {
 }
 
 // GetHubs returns a list of know hubs
+// ref: https://forge.autodesk.com/en/docs/data/v2/reference/http/hubs-GET/
 func (api HubAPI) GetHubs(hubFilters *HubsFilters) (result ForgeResponseArray, err error) {
 	err = api.Client.Get(
 		context.Background(),

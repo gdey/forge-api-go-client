@@ -133,7 +133,7 @@ func (a Auth) GetToken(code string) (bearer oauth.Bearer, err error) {
 
 	if res.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(res.Body)
-		return bearer, api.ErrorResult{
+		return bearer, api.ErrResult{
 			StatusCode: res.StatusCode,
 			Reason:     string(content),
 		}
@@ -183,7 +183,7 @@ func (a Auth) RefreshToken(refreshToken string) (bearer *oauth.Bearer, err error
 
 	if res.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(res.Body)
-		return nil, api.ErrorResult{
+		return nil, api.ErrResult{
 			StatusCode: res.StatusCode,
 			Reason:     string(content),
 		}

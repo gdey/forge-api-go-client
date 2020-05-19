@@ -3,11 +3,14 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/gdey/forge-api-go-client/oauth"
 	"github.com/gdey/forge-api-go-client/oauth/none"
@@ -21,16 +24,6 @@ const (
 
 type Filterer interface {
 	Add(url.Values) error
-}
-
-// ErrorResult reflects the body content when a request failed (g.e. Bad request or key conflict)
-type ErrorResult struct {
-	Reason     string `json:"reason"`
-	StatusCode int
-}
-
-func (e ErrorResult) Error() string {
-	return fmt.Sprintf("[%d]`%s`", e.StatusCode, e.Reason)
 }
 
 type Client struct {
@@ -95,7 +88,7 @@ func (c *Client) DoRawRequest(ctx context.Context, method string, scope scopes.S
 func (c *Client) ProcessRawError(response *http.Response, result interface{}) (err error) {
 	if response.StatusCode != http.StatusOK {
 		content, _ := ioutil.ReadAll(response.Body)
-		return ErrorResult{StatusCode: response.StatusCode, Reason: string(content)}
+		return ErrResult{StatusCode: response.StatusCode, Reason: string(content)}
 	}
 	if result == nil {
 		return nil
@@ -111,7 +104,7 @@ func (c *Client) ProcessRawError(response *http.Response, result interface{}) (e
 func (c *Client) ProcessJSONError(response *http.Response, result interface{}) (err error) {
 	decoder := json.NewDecoder(response.Body)
 	if response.StatusCode != http.StatusOK {
-		err = ErrorResult{StatusCode: response.StatusCode}
+		err = ErrResult{StatusCode: response.StatusCode}
 		_ = decoder.Decode(&err)
 		return err
 	}
@@ -127,12 +120,33 @@ func (c *Client) ProcessJSONError(response *http.Response, result interface{}) (
 
 func (c *Client) DoRequest(ctx context.Context, method string, scope scopes.Scope, paths []string, result interface{}, filters []Filterer, contentType string, body io.Reader) error {
 
+START:
 	res, err := c.DoRawRequest(ctx, method, scope, paths, filters, nil, contentType, body)
 	if err != nil {
-		return err
+		return fmt.Errorf("error making request to %v %v : %w", method, strings.Join(paths, "/"), err)
 	}
 	defer res.Body.Close()
-	return c.ProcessJSONError(res, result)
+	err = c.ProcessJSONError(res, result)
+	var errResult ErrResult
+	if err != nil && errors.As(err, &errResult) {
+		switch {
+		case errResult.IsRateLimited():
+			// we need to wait for a bit and then retry
+			<-time.After(30 * time.Second)
+			goto START
+		case errResult.StatusCode == http.StatusUnsupportedMediaType:
+			// This is lke a 500 error, however something is wrong with
+			// the call. (We are using the wrong media type.) Did the
+			// api change and we need to upgrade the api for this end-point
+			return ErrAPIIncompatible{
+				Err:          errResult,
+				DeveloperMsg: fmt.Sprintf("incorrect MediaType: sent %v for %v(%v)", contentType, method, strings.Join(paths, "/")),
+			}
+		default:
+			return errResult
+		}
+	}
+	return err
 }
 func (c *Client) Post(ctx context.Context, scope scopes.Scope, paths []string, result interface{}, contentType string, body io.Reader) error {
 	return c.DoRequest(ctx, http.MethodPost,
